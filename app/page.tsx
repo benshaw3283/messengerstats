@@ -32,6 +32,15 @@ export default function Home() {
   const [participants, setParticipants] = React.useState<Participant[]>([]);
   const [selectedValue, setSelectedValue] = React.useState<number>(0);
 
+  const fileInputRef = React.useRef(null);
+
+  const handleButtonClick = () => {
+    // Trigger the click event of the file input
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
   const handleChange = (value: string) => {
     setSelectedValue(parseInt(value));
   };
@@ -113,7 +122,7 @@ export default function Home() {
   const sortedCount = messageCounts.sort((a, b) => b.count - a.count);
 
   const numberReactions = (number: number) => {
-    // Function to find messages with 10 or more reactions
+    // Function to find messages with number or more reactions
     const findMessagesWithNumberPlusReactions = (messages: any) => {
       const messagesWithNumberPlusReactions = messages.filter(
         (message: Message) =>
@@ -122,7 +131,7 @@ export default function Home() {
       return messagesWithNumberPlusReactions;
     };
 
-    // Get messages with 10 or more reactions
+    // Get messages with number or more reactions
     const messagesWithNumberPlusReactions =
       findMessagesWithNumberPlusReactions(fileMessages);
 
@@ -168,7 +177,7 @@ export default function Home() {
     });
 
     let mostReactedUser = null;
-    let maxReactions = 0;
+    let maxReactions: number = 0;
     for (const [user, count] of Object.entries(reactionCounts)) {
       if (count > maxReactions) {
         mostReactedUser = user;
@@ -182,6 +191,23 @@ export default function Home() {
   // Find the user who reacted the most
   const reactedMost = findReactedMost(fileMessages);
 
+  const addComma = (count: number) => {
+    let withComma = "";
+    const string = count.toString();
+    if (string.length === 5) {
+      withComma = `${string.charAt(0)}${string.charAt(1)},${string.charAt(
+        2
+      )}${string.charAt(3)}${string.charAt(4)}`;
+    } else if (string.length === 4) {
+      withComma = `${string.charAt(0)},${string.charAt(1)}${string.charAt(
+        2
+      )}${string.charAt(3)}`;
+    } else {
+      withComma = string;
+    }
+    return withComma;
+  };
+
   React.useEffect(() => {
     readThenSpread();
     readParticipants();
@@ -194,33 +220,54 @@ export default function Home() {
           Facebook Messenger Statistics
         </h1>
 
-        <div className="">
+        <div className="border-4 p-2 rounded-sm">
+          <button
+            onClick={handleButtonClick}
+            className="absolute bg-slate-600 hover:scale-110 w-[109px] h-[30px] rounded-sm font-semibold"
+          >
+            Choose Files
+          </button>
           <input
             type="file"
+            ref={fileInputRef}
             directory=""
             webkitdirectory=""
             multiple
             onChange={handleFileSelect}
-            className=""
+            className="rounded-sm "
           />
         </div>
+        {fileMessages.length === 0 && (
+          <p className="text-sm text-muted text-slate-400">
+            * Facebook takes about 1 day to have your files ready to download
+          </p>
+        )}
       </div>
+      <div className="border border-white mt-6"></div>
+
       {selectedFiles.length ? (
-        <div className="flex flex-col container items-center">
-          <div className="flex flex-row gap-2 py-3 text-xl font-semibold">
+        <div className="flex flex-col container items-start">
+          <div className="flex flex-row gap-2 py-3 text-2xl font-semibold">
             <p>Total Messages:</p>
             <p>{fileMessages?.length}</p>
           </div>
           <div>
-            <p className="text-base font-semibold">{`Reacted the most: ${reactedMost}`}</p>
+            <p className="text-lg font-semibold">{`Reacted the most messages: ${reactedMost}`}</p>
           </div>
-          <div className="pt-5">
-            <h2 className="font-semibold text-xl border-b-2 flex justify-center">
+          <div className="pt-5 ">
+            <h2 className="font-semibold text-2xl border-b-2 flex justify-center">
               Messages Sent
             </h2>
             <div className="py-3">
               {sortedCount.map((person, index) => (
-                <p key={index}>{`${person.name}: ${person.count}`}</p>
+                <p
+                  key={index}
+                  className={
+                    index === 0 ? "text-xl font-bold " : "font-semibold text-lg"
+                  }
+                >
+                  {`${index + 1}: ${person.name}: ${addComma(person.count)}`}{" "}
+                </p>
               ))}
             </div>
           </div>
@@ -229,7 +276,7 @@ export default function Home() {
               <h2 className="font-semibold text-xl  pb-1 flex justify-center pr-1">
                 Messages with
               </h2>
-              <Select onValueChange={(v) => handleChange(v)}>
+              <Select onValueChange={(v: any) => handleChange(v)}>
                 <SelectTrigger className="w-[60px] h-[25px] text-black">
                   <SelectValue placeholder="1" />
                 </SelectTrigger>
@@ -270,7 +317,7 @@ export default function Home() {
                 + Reactions
               </p>
             </div>
-            <div className="py-3">
+            <div className="py-3 text-lg font-semibold">
               {" "}
               {fileMessages ? numberReactions(selectedValue) : ""}
             </div>
