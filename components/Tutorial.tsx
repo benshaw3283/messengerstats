@@ -6,7 +6,7 @@ const Tutorial = () => {
     <div className="pt-10 flex  items-center flex-col">
       <div className="border border-slate-300 w-full mb-6"></div>
       <div className="bg-white p-2 w-fit items-center rounded-lg flex border-2 border-blue-700">
-        <div className=" bg-blue-700 rounded-lg p-6 h-fit z-10">
+        <div className=" bg-blue-700 rounded-lg p-3 h-fit z-10">
           <h1 className="flex justify-center self-center text-4xl font-semibold ">
             Tutorial
           </h1>
@@ -14,7 +14,7 @@ const Tutorial = () => {
       </div>
 
       <div className="flex flex-col pl-3 ">
-        <div className="pt-2 flex flex-col items-center">
+        <div className="pt-6 flex flex-col items-center">
           <h1 className="text-2xl font-semibold border-b w-fit border-slate-300">
             Step 1
           </h1>

@@ -1,7 +1,7 @@
 "use client";
 import Tutorial from "@/components/Tutorial";
 import { useToast } from "@/components/ui/use-toast";
-import JSZip from "jszip";
+
 import React from "react";
 import {
   Select,
@@ -174,7 +174,7 @@ export default function Home() {
         <div
           className={
             index === 0
-              ? "text-2xl font-bold flex flex-row justify-start w-full h-fit"
+              ? "lg:text-2xl text-xl font-bold flex flex-row justify-start w-full h-fit"
               : "font-semibold text-xl flex flex-row justify-start py-1 w-full h-fit"
           }
           key={senderName}
@@ -321,31 +321,32 @@ export default function Home() {
         Download chickenfucken here slappas
       </a>
       <div ref={div1Ref} className="flex flex-col container items-center">
-        <h1 className="flex self-center font-bold text-3xl py-4">
-          Facebook Messenger Statistics
+        <h1 className="flex self-center font-bold lg:text-3xl text-2xl py-4">
+          Facebook Messenger Stats
         </h1>
+        <div className="flex justify-center items-center">
+          <div className="border-4 p-2 rounded-sm bg-white w-[225px]  h-[60px] flex">
+            <button
+              onClick={handleButtonClick}
+              className="absolute bg-blue-700  hover:scale-110  w-[200px] h-[50px] rounded-sm font-semibold self-center "
+            >
+              Choose Files
+            </button>
 
-        <div className="border-4 p-2 rounded-sm">
-          <button
-            onClick={handleButtonClick}
-            className="absolute bg-slate-600 hover:scale-110 w-[109px] h-[30px] rounded-sm font-semibold"
-          >
-            Choose Files
-          </button>
-
-          <input
-            type="file"
-            ref={fileInputRef}
-            // @ts-ignore
-            directory=""
-            webkitdirectory=""
-            multiple
-            onChange={handleFileSelect}
-            className="rounded-sm "
-          />
+            <input
+              type="file"
+              ref={fileInputRef}
+              // @ts-ignore
+              directory=""
+              webkitdirectory=""
+              multiple
+              onChange={handleFileSelect}
+              className="rounded-sm w-[110px] hidden"
+            />
+          </div>
         </div>
         {fileMessages.length === 0 && (
-          <p className="text-sm text-muted text-slate-400">
+          <p className="text-sm text-muted text-slate-400 mt-3">
             * Facebook takes about 1 day to have your files ready to download
           </p>
         )}
@@ -354,14 +355,14 @@ export default function Home() {
 
       {selectedFiles.length ? (
         <div className="flex flex-col items-center ">
-          <section className="bg-white p-4 rounded-lg mt-2 border-2 border-blue-700">
+          <section className="bg-neutral-100 p-4 rounded-lg mt-2 border-2 border-blue-700">
             <div className="bg-blue-700 rounded-lg p-4   z-10">
               <h1 className="text-5xl font-semibold p-3  rounded-lg">
                 {folderName}
               </h1>
             </div>
           </section>
-          <section className="bg-white p-2 rounded-lg mt-2 border-2 border-blue-700">
+          <section className="bg-neutral-100 p-2 rounded-lg mt-2 border-2 border-blue-700">
             <div className="flex flex-row gap-2 py-3 text-2xl font-semibold pt-5 bg-blue-700 rounded-lg p-2  z-10">
               <p>Total Messages:</p>
               <p>{addComma(fileMessages?.length)}</p>
@@ -372,9 +373,9 @@ export default function Home() {
           </div>
           <div
             id="CONTAINER"
-            className=" flex lg:flex-row flex-col w-full justify-around mt-10"
+            className=" flex lg:flex-row gap-4 lg:gap-0 flex-col w-full justify-around mt-10"
           >
-            <div className="bg-white p-4 rounded-lg flex order-1 h-fit w-fit self-center lg:self-start border-2 border-blue-700">
+            <div className="bg-neutral-100 p-4 rounded-lg flex order-1 h-fit w-fit self-center lg:self-start border-2 border-blue-700">
               <div
                 ref={div1Ref}
                 className="pt-5 bg-blue-700 rounded-lg p-10 h-fit z-10 flex flex-col "
@@ -406,7 +407,7 @@ export default function Home() {
                       key={index}
                       className={
                         index === 0
-                          ? "text-2xl font-bold flex flex-row justify-start w-full"
+                          ? "text-xl lg:text-2xl font-bold flex flex-row justify-start w-full"
                           : "font-semibold text-xl flex flex-row justify-start py-1 w-full"
                       }
                     >
@@ -425,11 +426,11 @@ export default function Home() {
             <div className="flex flex-col  items-center order-3 mt-10 lg:mt-0">
               <div
                 ref={div3Ref}
-                className="bg-white p-4 rounded-lg border-2 border-blue-700"
+                className="bg-neutral-100 p-4 rounded-lg border-2 border-blue-700"
               >
                 <div className="pt-5 bg-blue-700 rounded-lg p-10  z-10 ">
                   <div className="flex flex-row border-b-2">
-                    <h2 className="font-semibold text-xl  pb-1 flex justify-center pr-1">
+                    <h2 className="font-semibold lg:text-xl text-lg pb-1 flex justify-center pr-1">
                       Messages with
                     </h2>
                     <Select onValueChange={(v: any) => handleChange(v)}>
@@ -501,12 +502,12 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            <div className=" order-2 bg-white p-4 rounded-lg flex  h-fit w-fit self-center lg:self-start border-2 border-blue-700 ">
+            <div className=" order-2 bg-neutral-100 p-4 rounded-lg flex  h-fit w-fit self-center lg:self-start border-2 border-blue-700 ">
               <div
                 ref={div2Ref}
                 className="pt-5 bg-blue-700 rounded-lg p-10 h-fit z-10 flex flex-col"
               >
-                <div className="flex flex-row border-b-2 items-center mb-2">
+                <div className="flex flex-col lg:flex-row border-b-2 items-center mb-2">
                   <h2 className="font-semibold text-xl  pb-1 flex justify-center pr-1">
                     Messages with the word/s
                   </h2>
@@ -515,7 +516,9 @@ export default function Home() {
                       name="wordSearch"
                       className="flex self-center bg-blue-500 rounded-lg p-1 mb-1 border-2 border-r-0 rounded-r-none border-white w-24"
                     />
-                    <p className="absolute text-red-500 opacity-0">fuck</p>
+                    <p className="absolute text-red-500 opacity-0">
+                      {selectedWord?.toString()}
+                    </p>
                     <button
                       type="submit"
                       className=" border-b-2 border-t-2 border-r-2 border-white  rounded-lg rounded-l-none self-baseline p-1 "
@@ -523,7 +526,7 @@ export default function Home() {
                       Search
                     </button>
                   </form>
-                  <span className="relative flex self-end items-end -top-6 left-2">
+                  <span className="relative flex self-end items-end lg:-top-6 lg:left-2 -top-14 left-3">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
@@ -551,7 +554,7 @@ export default function Home() {
       ) : (
         <div>
           <p className="flex text-lg font-semibold justify-center pt-4">
-            Upload files to see statistics
+            Upload files to see stats
           </p>
         </div>
       )}
