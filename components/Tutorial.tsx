@@ -3,11 +3,18 @@ import Image from "next/image";
 
 const Tutorial = () => {
   return (
-    <div className="pt-10">
-      <h1 className="flex justify-center text-4xl font-semibold">Tutorial</h1>
-      <div className="border border-slate-300 w-full"></div>
-      <div className="flex flex-col pl-3">
-        <div className="pt-2">
+    <div className="pt-10 flex  items-center flex-col">
+      <div className="border border-slate-300 w-full mb-6"></div>
+      <div className="bg-white p-2 w-fit items-center rounded-lg flex border-2 border-blue-700">
+        <div className=" bg-blue-700 rounded-lg p-6 h-fit z-10">
+          <h1 className="flex justify-center self-center text-4xl font-semibold ">
+            Tutorial
+          </h1>
+        </div>
+      </div>
+
+      <div className="flex flex-col pl-3 ">
+        <div className="pt-2 flex flex-col items-center">
           <h1 className="text-2xl font-semibold border-b w-fit border-slate-300">
             Step 1
           </h1>
@@ -72,7 +79,7 @@ const Tutorial = () => {
             the files to be ready to download
           </p>
         </div>
-        <div className="pt-4">
+        <div className="pt-4 flex flex-col items-center">
           <h2 className="text-2xl font-semibold border-b border-slate-300 w-fit">
             Step 2
           </h2>
@@ -139,7 +146,7 @@ const Tutorial = () => {
           </div>
           <p>
             Find the folder with the name of the conversation you want to see
-            the stats of and put it on your desktop
+            the stats of, <strong>unzip it</strong> and put it on your desktop
           </p>
           <p className="py-3">
             Then, click choose files at the top of this page and select that
