@@ -37,9 +37,9 @@ export default function Home() {
   const [selectedWord, setSelectedWord] = React.useState<FormData>();
 
   const fileInputRef = React.useRef(null);
-  const div1Ref = React.useRef(null);
-  const div2Ref = React.useRef(null);
-  const div3Ref = React.useRef(null);
+  const div1Ref = React.useRef<any>(null);
+  const div2Ref = React.useRef<any>(null);
+  const div3Ref = React.useRef<any>(null);
 
   let folderName = selectedFiles[0]?.webkitRelativePath
     ?.split("/")[0]
@@ -48,7 +48,7 @@ export default function Home() {
   const handleButtonClick = () => {
     // Trigger the click event of the file input
     if (fileInputRef.current) {
-      fileInputRef.current.click();
+      (fileInputRef?.current as HTMLInputElement).click();
     }
   };
 
@@ -189,7 +189,7 @@ export default function Home() {
     return sortedSenderList;
   };
 
-  const wordOccurrences = (word: string) => {
+  const wordOccurrences = (word: string | any) => {
     // Function to find messages containing the specified word/s
     const findMessagesWithWord = (messages: any) => {
       const messagesWithWord = messages.filter(
@@ -256,11 +256,11 @@ export default function Home() {
     });
 
     let mostReactedUser = null;
-    let maxReactions: number = 0;
+    let maxReactions: any = 0;
     for (const [user, count] of Object.entries(reactionCounts)) {
-      if (count > maxReactions) {
+      if ((count as number) > maxReactions) {
         mostReactedUser = user;
-        maxReactions = count;
+        maxReactions = count as number;
       }
     }
 
@@ -270,7 +270,7 @@ export default function Home() {
   // Find the user who reacted the most
   const reactedMost = findReactedMost(fileMessages);
 
-  const addComma = (count: number) => {
+  const addComma = (count: any | unknown) => {
     let withComma = "";
     const string = count.toString();
     if (string.length === 5) {
@@ -312,6 +312,7 @@ export default function Home() {
   React.useEffect(() => {
     readThenSpread();
     readParticipants();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFiles]);
 
   return (
@@ -331,9 +332,11 @@ export default function Home() {
           >
             Choose Files
           </button>
+
           <input
             type="file"
             ref={fileInputRef}
+            // @ts-ignore
             directory=""
             webkitdirectory=""
             multiple
