@@ -35,15 +35,13 @@ export default function Home() {
   const [participants, setParticipants] = React.useState<Participant[]>([]);
   const [selectedValue, setSelectedValue] = React.useState<number>(0);
   const [selectedWord, setSelectedWord] = React.useState<FormData>();
-
+  const convoTitleRef = React.useRef<string>("");
   const fileInputRef = React.useRef(null);
   const div1Ref = React.useRef<any>(null);
   const div2Ref = React.useRef<any>(null);
   const div3Ref = React.useRef<any>(null);
 
-  let folderName = selectedFiles[0]?.webkitRelativePath
-    ?.split("/")[0]
-    .split("_")[0];
+  // let folderName = selectedFiles[0];
 
   const handleButtonClick = () => {
     // Trigger the click event of the file input
@@ -116,6 +114,7 @@ export default function Home() {
 
         try {
           const jsonData = JSON.parse(fileContents);
+          convoTitleRef.current = jsonData.title;
           const spread: any = [...jsonData.messages];
           setFileMessages((prev) => [...prev, ...spread]);
         } catch (error) {
@@ -180,8 +179,10 @@ export default function Home() {
           key={senderName}
         >
           <p className="pr-2 flex ">{`${index + 1}.`}</p>
-          <p className="pr-4 flex pl-4  w-full">{senderName}</p>
-          <p className="font-bold text-xl pl-6">{addComma(messageCount)}</p>
+          <p className="pr-4 flex pl-2 lg:pl-4  w-full">{senderName}</p>
+          <p className="font-bold text-xl lg:pl-6 pl-2">
+            {addComma(messageCount)}
+          </p>
         </div>
       )
     );
@@ -230,7 +231,7 @@ export default function Home() {
           key={senderName}
         >
           <p className="pr-2 ">{`${index + 1}.`}</p>
-          <p className="pr-4 flex w-full pl-4">{senderName}</p>
+          <p className="pr-4 flex w-full lg:pl-4 pl-2">{senderName}</p>
           <p className="font-bold text-xl pl-4">{addComma(messageCount)}</p>
         </div>
       )
@@ -324,6 +325,7 @@ export default function Home() {
         <h1 className="flex self-center font-bold lg:text-3xl text-2xl py-4">
           Facebook Messenger Stats
         </h1>
+        <button onClick={() => console.log(selectedFiles[0])}>click</button>
         <div className="flex justify-center items-center">
           <div className="border-4 p-2 rounded-sm bg-white w-[225px]  h-[60px] flex">
             <button
@@ -357,8 +359,8 @@ export default function Home() {
         <div className="flex flex-col items-center ">
           <section className="bg-neutral-100 p-4 rounded-lg mt-2 border-2 border-blue-700">
             <div className="bg-blue-700 rounded-lg p-4   z-10">
-              <h1 className="text-5xl font-semibold p-3  rounded-lg">
-                {folderName}
+              <h1 className="lg:text-5xl text-4xl font-semibold p-3  rounded-lg">
+                {convoTitleRef.current}
               </h1>
             </div>
           </section>
@@ -413,9 +415,11 @@ export default function Home() {
                     >
                       <p className="pr-2 ">{`${index + 1}.`}</p>
 
-                      <p className="pr-4 flex w-full pl-4">{person.name}</p>
+                      <p className="pr-1 lg:pr-4 flex w-full pl-2 lg:pl-4">
+                        {person.name}
+                      </p>
 
-                      <p className="font-bold text-xl pl-4">
+                      <p className="font-bold text-xl lg:pl-6 pl-2">
                         {addComma(person.count)}
                       </p>
                     </div>
@@ -430,7 +434,7 @@ export default function Home() {
               >
                 <div className="pt-5 bg-blue-700 rounded-lg p-10  z-10 ">
                   <div className="flex flex-row border-b-2">
-                    <h2 className="font-semibold lg:text-xl text-lg pb-1 flex justify-center pr-1">
+                    <h2 className="font-semibold lg:text-xl text-base pb-1 flex justify-center pr-1">
                       Messages with
                     </h2>
                     <Select onValueChange={(v: any) => handleChange(v)}>
@@ -470,7 +474,7 @@ export default function Home() {
                         <SelectItem value="30">30</SelectItem>
                       </SelectContent>
                     </Select>
-                    <p className="font-semibold text-xl  pb-1 flex justify-center pl-1">
+                    <p className="font-semibold lg:text-xl text-base pb-1 flex justify-center pl-1">
                       + Reactions
                     </p>
                   </div>
