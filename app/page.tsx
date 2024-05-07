@@ -268,6 +268,8 @@ export default function Home() {
     return mostReactedUser;
   };
 
+  const fuck = true;
+
   // Find the user who reacted the most
   const reactedMost = findReactedMost(fileMessages);
 
@@ -318,252 +320,258 @@ export default function Home() {
 
   return (
     <main className="bg-slate-950 text-white">
-      <a href="/chickenfucken.zip" download>
-        Download chickenfucken here slappas
-      </a>
-      <div ref={div1Ref} className="flex flex-col container items-center">
-        <h1 className="flex self-center font-bold lg:text-3xl text-2xl py-4">
-          Facebook Messenger Stats
-        </h1>
-
-        <div className="flex justify-center items-center">
-          <div className="border-4 p-2 rounded-sm bg-white w-[225px]  h-[60px] flex">
-            <button
-              onClick={handleButtonClick}
-              className="absolute bg-blue-700  hover:scale-110  w-[200px] h-[50px] rounded-sm font-semibold self-center "
-            >
-              Choose Files
-            </button>
-
-            <input
-              type="file"
-              ref={fileInputRef}
-              // @ts-ignore
-              directory=""
-              webkitdirectory=""
-              multiple
-              onChange={handleFileSelect}
-              className="rounded-sm w-[110px] hidden"
-            />
-          </div>
-        </div>
-        {fileMessages.length === 0 && (
-          <p className="text-sm text-muted text-slate-400 mt-3">
-            * Facebook takes about 1 day to have your files ready to download
-          </p>
-        )}
-      </div>
-      <div className="border border-white mt-6"></div>
-
-      {selectedFiles.length ? (
-        <div className="flex flex-col items-center ">
-          <section className="bg-neutral-100 p-4 rounded-lg mt-2 border-2 border-blue-700">
-            <div className="bg-blue-700 rounded-lg p-4   z-10">
-              <h1 className="lg:text-5xl text-4xl font-semibold p-3  rounded-lg">
-                {convoTitleRef.current}
-              </h1>
-            </div>
-          </section>
-          <section className="bg-neutral-100 p-2 rounded-lg mt-2 border-2 border-blue-700">
-            <div className="flex flex-row gap-2 py-3 text-2xl font-semibold pt-5 bg-blue-700 rounded-lg p-2  z-10">
-              <p>Total Messages:</p>
-              <p>{addComma(fileMessages?.length)}</p>
-            </div>
-          </section>
-          <div>
-            <p className="text-lg font-semibold">{`Reacted the most messages: ${reactedMost}`}</p>
-          </div>
-          <div
-            id="CONTAINER"
-            className=" flex lg:flex-row gap-4 lg:gap-0 flex-col w-full justify-around mt-10"
-          >
-            <div className="bg-neutral-100 p-4 rounded-lg flex order-1 h-fit w-fit self-center lg:self-start border-2 border-blue-700">
-              <div
-                ref={div1Ref}
-                className="pt-5 bg-blue-700 rounded-lg p-10 h-fit z-10 flex flex-col "
-              >
-                <h2 className="font-semibold text-2xl border-b-2 flex justify-center">
-                  Messages Sent
-                </h2>
-                <span className="relative flex self-end items-end -top-5 left-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-6 h-6 absolute cursor-pointer hover:scale-105"
-                    onClick={() => copyToClipboard(div1Ref.current?.innerText)}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"
-                    />
-                  </svg>
-                </span>
-
-                <div className="py-3 ">
-                  {sortedCount.map((person, index) => (
-                    <div
-                      key={index}
-                      className={
-                        index === 0
-                          ? "text-xl lg:text-2xl font-bold flex flex-row justify-start w-full"
-                          : "font-semibold text-xl flex flex-row justify-start py-1 w-full"
-                      }
-                    >
-                      <p className="pr-2 ">{`${index + 1}.`}</p>
-
-                      <p className="pr-1 lg:pr-4 flex w-full pl-2 lg:pl-4">
-                        {person.name}
-                      </p>
-
-                      <p className="font-bold text-xl lg:pl-6 pl-2">
-                        {addComma(person.count)}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-col  items-center order-3 mt-10 lg:mt-0">
-              <div
-                ref={div3Ref}
-                className="bg-neutral-100 p-4 rounded-lg border-2 border-blue-700"
-              >
-                <div className="pt-5 bg-blue-700 rounded-lg p-10  z-10 ">
-                  <div className="flex flex-row border-b-2">
-                    <h2 className="font-semibold lg:text-xl text-base pb-1 flex justify-center pr-1">
-                      Messages with
-                    </h2>
-                    <Select onValueChange={(v: any) => handleChange(v)}>
-                      <SelectTrigger className="w-[60px] h-[25px] text-black">
-                        <SelectValue placeholder="1" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">1</SelectItem>
-                        <SelectItem value="2">2</SelectItem>
-                        <SelectItem value="3">3</SelectItem>
-                        <SelectItem value="4">4</SelectItem>
-                        <SelectItem value="5">5</SelectItem>
-                        <SelectItem value="6">6</SelectItem>
-                        <SelectItem value="7">7</SelectItem>
-                        <SelectItem value="8">8</SelectItem>
-                        <SelectItem value="9">9</SelectItem>
-                        <SelectItem value="10">10</SelectItem>
-                        <SelectItem value="11">11</SelectItem>
-                        <SelectItem value="12">12</SelectItem>
-                        <SelectItem value="13">13</SelectItem>
-                        <SelectItem value="14">14</SelectItem>
-                        <SelectItem value="15">15</SelectItem>
-                        <SelectItem value="16">16</SelectItem>
-                        <SelectItem value="17">17</SelectItem>
-                        <SelectItem value="18">18</SelectItem>
-                        <SelectItem value="19">19</SelectItem>
-                        <SelectItem value="20">20</SelectItem>
-                        <SelectItem value="21">21</SelectItem>
-                        <SelectItem value="22">22</SelectItem>
-                        <SelectItem value="23">23</SelectItem>
-                        <SelectItem value="24">24</SelectItem>
-                        <SelectItem value="25">25</SelectItem>
-                        <SelectItem value="26">26</SelectItem>
-                        <SelectItem value="27">27</SelectItem>
-                        <SelectItem value="28">28</SelectItem>
-                        <SelectItem value="29">29</SelectItem>
-                        <SelectItem value="30">30</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="font-semibold lg:text-xl text-base pb-1 flex justify-center pl-1">
-                      + Reactions
-                    </p>
-                  </div>
-                  <span className="relative flex justify-end  items-end -top-5 left-8">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-6 h-6 absolute cursor-pointer hover:scale-105"
-                      onClick={() =>
-                        copyToClipboard(div3Ref.current?.innerText)
-                      }
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"
-                      />
-                    </svg>
-                  </span>
-                  <div className="flex flex-col items-center">
-                    <div className="py-3 text-lg font-semibold flex flex-col items-start">
-                      {" "}
-                      {fileMessages ? numberReactions(selectedValue) : ""}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className=" order-2 bg-neutral-100 p-4 rounded-lg flex  h-fit w-fit self-center lg:self-start border-2 border-blue-700 ">
-              <div
-                ref={div2Ref}
-                className="pt-5 bg-blue-700 rounded-lg p-10 h-fit z-10 flex flex-col"
-              >
-                <div className="flex flex-col lg:flex-row border-b-2 items-center mb-2">
-                  <h2 className="font-semibold text-xl  pb-1 flex justify-center pr-1">
-                    Messages with the word/s
-                  </h2>
-                  <form action={handleWordChange} className="flex">
-                    <input
-                      name="wordSearch"
-                      className="flex self-center bg-blue-500 rounded-lg p-1 mb-1 border-2 border-r-0 rounded-r-none border-white w-24"
-                    />
-                    <p className="absolute text-red-500 opacity-0">
-                      {selectedWord?.toString()}
-                    </p>
-                    <button
-                      type="submit"
-                      className=" border-b-2 border-t-2 border-r-2 border-white  rounded-lg rounded-l-none self-baseline p-1 "
-                    >
-                      Search
-                    </button>
-                  </form>
-                  <span className="relative flex self-end items-end lg:-top-6 lg:left-2 -top-14 left-3">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-6 h-6 absolute cursor-pointer hover:scale-105"
-                      onClick={() =>
-                        copyToClipboard(div2Ref.current?.innerText)
-                      }
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"
-                      />
-                    </svg>
-                  </span>
-                </div>
-                {fileMessages && wordOccurrences(selectedWord)}
-              </div>
-            </div>
-          </div>
-        </div>
+      {fuck === true ? (
+        <div></div>
       ) : (
         <div>
-          <p className="flex text-lg font-semibold justify-center pt-4">
-            Upload files to see stats
-          </p>
+          <div ref={div1Ref} className="flex flex-col container items-center">
+            <h1 className="flex self-center font-bold lg:text-3xl text-2xl py-4">
+              Facebook Messenger Stats
+            </h1>
+
+            <div className="flex justify-center items-center">
+              <div className="border-4 p-2 rounded-sm bg-white w-[225px]  h-[60px] flex">
+                <button
+                  onClick={handleButtonClick}
+                  className="absolute bg-blue-700  hover:scale-110  w-[200px] h-[50px] rounded-sm font-semibold self-center "
+                >
+                  Choose Files
+                </button>
+
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  // @ts-ignore
+                  directory=""
+                  webkitdirectory=""
+                  multiple
+                  onChange={handleFileSelect}
+                  className="rounded-sm w-[110px] hidden"
+                />
+              </div>
+            </div>
+            {fileMessages.length === 0 && (
+              <p className="text-sm text-muted text-slate-400 mt-3">
+                * Facebook takes about 1 day to have your files ready to
+                download
+              </p>
+            )}
+          </div>
+          <div className="border border-white mt-6"></div>
+
+          {selectedFiles.length ? (
+            <div className="flex flex-col items-center ">
+              <section className="bg-neutral-100 p-4 rounded-lg mt-2 border-2 border-blue-700">
+                <div className="bg-blue-700 rounded-lg p-4   z-10">
+                  <h1 className="lg:text-5xl text-4xl font-semibold p-3  rounded-lg">
+                    {convoTitleRef.current}
+                  </h1>
+                </div>
+              </section>
+              <section className="bg-neutral-100 p-2 rounded-lg mt-2 border-2 border-blue-700">
+                <div className="flex flex-row gap-2 py-3 text-2xl font-semibold pt-5 bg-blue-700 rounded-lg p-2  z-10">
+                  <p>Total Messages:</p>
+                  <p>{addComma(fileMessages?.length)}</p>
+                </div>
+              </section>
+              <div>
+                <p className="text-lg font-semibold">{`Reacted the most messages: ${reactedMost}`}</p>
+              </div>
+              <div
+                id="CONTAINER"
+                className=" flex lg:flex-row gap-4 lg:gap-0 flex-col w-full justify-around mt-10"
+              >
+                <div className="bg-neutral-100 p-4 rounded-lg flex order-1 h-fit w-fit self-center lg:self-start border-2 border-blue-700">
+                  <div
+                    ref={div1Ref}
+                    className="pt-5 bg-blue-700 rounded-lg p-10 h-fit z-10 flex flex-col "
+                  >
+                    <h2 className="font-semibold text-2xl border-b-2 flex justify-center">
+                      Messages Sent
+                    </h2>
+                    <span className="relative flex self-end items-end -top-5 left-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="w-6 h-6 absolute cursor-pointer hover:scale-105"
+                        onClick={() =>
+                          copyToClipboard(div1Ref.current?.innerText)
+                        }
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"
+                        />
+                      </svg>
+                    </span>
+
+                    <div className="py-3 ">
+                      {sortedCount.map((person, index) => (
+                        <div
+                          key={index}
+                          className={
+                            index === 0
+                              ? "text-xl lg:text-2xl font-bold flex flex-row justify-start w-full"
+                              : "font-semibold text-xl flex flex-row justify-start py-1 w-full"
+                          }
+                        >
+                          <p className="pr-2 ">{`${index + 1}.`}</p>
+
+                          <p className="pr-1 lg:pr-4 flex w-full pl-2 lg:pl-4">
+                            {person.name}
+                          </p>
+
+                          <p className="font-bold text-xl lg:pl-6 pl-2">
+                            {addComma(person.count)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col  items-center order-3 mt-10 lg:mt-0">
+                  <div
+                    ref={div3Ref}
+                    className="bg-neutral-100 p-4 rounded-lg border-2 border-blue-700"
+                  >
+                    <div className="pt-5 bg-blue-700 rounded-lg p-10  z-10 ">
+                      <div className="flex flex-row border-b-2">
+                        <h2 className="font-semibold lg:text-xl text-base pb-1 flex justify-center pr-1">
+                          Messages with
+                        </h2>
+                        <Select onValueChange={(v: any) => handleChange(v)}>
+                          <SelectTrigger className="w-[60px] h-[25px] text-black">
+                            <SelectValue placeholder="1" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1">1</SelectItem>
+                            <SelectItem value="2">2</SelectItem>
+                            <SelectItem value="3">3</SelectItem>
+                            <SelectItem value="4">4</SelectItem>
+                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="6">6</SelectItem>
+                            <SelectItem value="7">7</SelectItem>
+                            <SelectItem value="8">8</SelectItem>
+                            <SelectItem value="9">9</SelectItem>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="11">11</SelectItem>
+                            <SelectItem value="12">12</SelectItem>
+                            <SelectItem value="13">13</SelectItem>
+                            <SelectItem value="14">14</SelectItem>
+                            <SelectItem value="15">15</SelectItem>
+                            <SelectItem value="16">16</SelectItem>
+                            <SelectItem value="17">17</SelectItem>
+                            <SelectItem value="18">18</SelectItem>
+                            <SelectItem value="19">19</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
+                            <SelectItem value="21">21</SelectItem>
+                            <SelectItem value="22">22</SelectItem>
+                            <SelectItem value="23">23</SelectItem>
+                            <SelectItem value="24">24</SelectItem>
+                            <SelectItem value="25">25</SelectItem>
+                            <SelectItem value="26">26</SelectItem>
+                            <SelectItem value="27">27</SelectItem>
+                            <SelectItem value="28">28</SelectItem>
+                            <SelectItem value="29">29</SelectItem>
+                            <SelectItem value="30">30</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="font-semibold lg:text-xl text-base pb-1 flex justify-center pl-1">
+                          + Reactions
+                        </p>
+                      </div>
+                      <span className="relative flex justify-end  items-end -top-5 left-8">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={1.5}
+                          stroke="currentColor"
+                          className="w-6 h-6 absolute cursor-pointer hover:scale-105"
+                          onClick={() =>
+                            copyToClipboard(div3Ref.current?.innerText)
+                          }
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"
+                          />
+                        </svg>
+                      </span>
+                      <div className="flex flex-col items-center">
+                        <div className="py-3 text-lg font-semibold flex flex-col items-start">
+                          {" "}
+                          {fileMessages ? numberReactions(selectedValue) : ""}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className=" order-2 bg-neutral-100 p-4 rounded-lg flex  h-fit w-fit self-center lg:self-start border-2 border-blue-700 ">
+                  <div
+                    ref={div2Ref}
+                    className="pt-5 bg-blue-700 rounded-lg p-10 h-fit z-10 flex flex-col"
+                  >
+                    <div className="flex flex-col lg:flex-row border-b-2 items-center mb-2">
+                      <h2 className="font-semibold text-xl  pb-1 flex justify-center pr-1">
+                        Messages with the word/s
+                      </h2>
+                      <form action={handleWordChange} className="flex">
+                        <input
+                          name="wordSearch"
+                          className="flex self-center bg-blue-500 rounded-lg p-1 mb-1 border-2 border-r-0 rounded-r-none border-white w-24"
+                        />
+                        <p className="absolute text-red-500 opacity-0">
+                          {selectedWord?.toString()}
+                        </p>
+                        <button
+                          type="submit"
+                          className=" border-b-2 border-t-2 border-r-2 border-white  rounded-lg rounded-l-none self-baseline p-1 "
+                        >
+                          Search
+                        </button>
+                      </form>
+                      <span className="relative flex self-end items-end lg:-top-6 lg:left-2 -top-14 left-3">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={1.5}
+                          stroke="currentColor"
+                          className="w-6 h-6 absolute cursor-pointer hover:scale-105"
+                          onClick={() =>
+                            copyToClipboard(div2Ref.current?.innerText)
+                          }
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"
+                          />
+                        </svg>
+                      </span>
+                    </div>
+                    {fileMessages && wordOccurrences(selectedWord)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <p className="flex text-lg font-semibold justify-center pt-4">
+                Upload files to see stats
+              </p>
+            </div>
+          )}
+
+          <Tutorial />
         </div>
       )}
-
-      <Tutorial />
     </main>
   );
 }
