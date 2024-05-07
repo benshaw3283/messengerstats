@@ -325,7 +325,7 @@ export default function Home() {
         <h1 className="flex self-center font-bold lg:text-3xl text-2xl py-4">
           Facebook Messenger Stats
         </h1>
-        <button onClick={() => console.log(selectedFiles[0])}>click</button>
+
         <div className="flex justify-center items-center">
           <div className="border-4 p-2 rounded-sm bg-white w-[225px]  h-[60px] flex">
             <button
