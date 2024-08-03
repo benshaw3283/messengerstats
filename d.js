@@ -80,46 +80,72 @@ async function requestDownload() {
   }
 
   async function clickMessagesAndNext() {
-    // Wait for the input element to be visible
-    const inputSelector = 'div input[name="Messages-checkbox"]';
-    await page.waitForSelector(inputSelector);
-    console.log("messages checkbox found");
-    await page.click(inputSelector);
+    const inputSelector =
+      "label:nth-of-type(3) > div > div > div.x9f619.x1n2onr6.x1ja2u2z.xdt5ytf.x2lah0s.x193iq5w.xeuugli.x78zum5 > div > input";
 
-    console.log("checkbox checked");
-    // Change the aria-checked attribute from false to true
+    await page.waitForSelector(inputSelector, { visible: true });
+    console.log("Messages checkbox found");
+
+    // Log multiple checkboxes
     await page.evaluate(() => {
-      const inputElement = document.querySelector(
-        'div input[name="Messages-checkbox"]'
-      );
-      if (inputElement) {
-        inputElement.setAttribute("aria-checked", "true");
+      const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+      checkboxes.forEach((checkbox, index) => {
+        console.log(`Checkbox ${index}:`, checkbox.getAttribute("name"));
+      });
+    });
+
+    // Click the checkbox
+    await page.evaluate(async (selector) => {
+      const checkbox = document.querySelector(selector);
+      if (checkbox) {
+        checkbox.click();
+        console.log("Checkbox clicked");
+        await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for any JavaScript handling
+        checkbox.setAttribute("aria-checked", "true");
+      } else {
+        console.log("Checkbox not found");
       }
-      console.log("checkbox clicked");
-    });
+    }, inputSelector);
 
-    // Optional: Verify the change
-    const ariaCheckedValue = await page.evaluate(() => {
-      const inputElement = document.querySelector(
-        'div input[name="Messages-checkbox"]'
-      );
-      return inputElement ? inputElement.getAttribute("aria-checked") : null;
-    });
-    console.log("aria-checked value:", ariaCheckedValue);
+    // Wait for aria-checked attribute to be 'true'
+    await page.waitForFunction(
+      (selector) => {
+        const checkbox = document.querySelector(selector);
+        return checkbox && checkbox.getAttribute("aria-checked") === "true";
+      },
+      { timeout: 5000 },
+      inputSelector
+    );
+    console.log("Checkbox checked");
 
-    console.log("looking for div");
-    const divSelector = 'div[role="button"][tabindex="0"]';
-    await page.waitForSelector(divSelector);
-    console.log("found next button");
-    //await page.click(divSelector);
-    // Use evaluate to perform the click
+    // Define the selector for the next button
+    const divSelector =
+      "div > div:nth-child(1) > div > div > div > div > div.x78zum5.xdt5ytf.x1iyjqo2 > div > div > div > div > div > div.x1o1ewxj.x3x9cwd.x1e5q0jg.x13rtm0m.x78zum5.xdt5ytf.x1iyjqo2.x1al4vs7 > div > div.xlp1x4z.x1ey2m1c.xds687c.x10l6tqk.x17qophe.x1jx94hy.xv7j57z > div.x6ikm8r.x10wlt62 > div > div > div > div > div > div > div";
+
+    await page.waitForSelector(divSelector, { visible: true });
+    console.log("Next button found");
+
+    // Wait for the next button to be enabled
+    await page.waitForFunction(
+      (selector) => {
+        const button = document.querySelector(selector);
+        return (
+          button &&
+          !button.disabled &&
+          button.getAttribute("aria-disabled") !== "true"
+        );
+      },
+      {},
+      divSelector
+    );
+
     await page.evaluate((selector) => {
       const button = document.querySelector(selector);
       if (button) {
         button.click();
       }
     }, divSelector);
-    console.log("clicked");
+    console.log("Next button clicked");
   }
 
   async function clickDownloadDeviceAndNext() {
@@ -142,7 +168,29 @@ async function requestDownload() {
     console.log("checkbox checked");
 */
     }
-    const divSelector = 'div[role="button"][tabindex="0"]';
+    const divSelector =
+      " div > div:nth-child(1) > div > div.__fb-dark-mode.x1n2onr6.x1vjfegm > div > div > div.x78zum5.xdt5ytf.x1iyjqo2 > div > div > div > div > div > div.x1o1ewxj.x3x9cwd.x1e5q0jg.x13rtm0m.x78zum5.xdt5ytf.x1iyjqo2.x1al4vs7 > div > div.xlp1x4z.x1ey2m1c.xds687c.x10l6tqk.x17qophe.xv7j57z > div.x6ikm8r.x10wlt62 > div > div > div > div > div > div > div";
+    console.log("looking for download next button");
+
+    const buttonProperties = await page.evaluate((selector) => {
+      const button = document.querySelector(selector);
+      if (!button) {
+        return null;
+      }
+      const properties = {
+        offsetWidth: button.offsetWidth,
+        offsetHeight: button.offsetHeight,
+        visibility: window.getComputedStyle(button).visibility,
+        display: window.getComputedStyle(button).display,
+        disabled: button.disabled,
+        ariaDisabled: button.getAttribute("aria-disabled"),
+        innerText: button.innerText,
+        innerHTML: button.innerHTML,
+      };
+      return properties;
+    }, divSelector);
+
+    console.log(buttonProperties);
     await page.waitForSelector(divSelector);
     console.log("found button");
     await page.click(divSelector);
@@ -151,65 +199,147 @@ async function requestDownload() {
 
   async function dateRangeAllTime() {
     // Wait for the list to be present
-    await page.waitForSelector('div[role="list"]');
+    console.log("trying to find button inside listitem");
 
-    // Find the first list item within the list
-    const listItem = await page.$('div[role="list"] > div[role="listitem"]');
+    const selector =
+      "div > div:nth-child(1) > div > div > div > div > div.x78zum5.xdt5ytf.x1iyjqo2 > div > div > div > div > div > div.x1o1ewxj.x3x9cwd.x1e5q0jg.x13rtm0m.x78zum5.xdt5ytf.x1iyjqo2.x1al4vs7 > div > div.xb57i2i.x1q594ok.x5lxg6s.x78zum5.xdt5ytf.x6ikm8r.x1ja2u2z.x1pq812k.x1rohswg.xfk6m8.x1yqm8si.xjx87ck.xx8ngbg.xwo3gff.x1n2onr6.x1oyok0e.x1odjw0f.x1iyjqo2.xy5w88m > div.x78zum5.xdt5ytf.x1iyjqo2.x1n2onr6.xaci4zi.x129vozr > div.x78zum5.xdt5ytf.x1iyjqo2.xx6bls6.x889kno > div > div > div:nth-child(4) > div > div > div > div > div > div > div";
+    await page.waitForSelector(selector);
+    console.log("found date range div");
 
-    if (listItem) {
-      // Find the button within the list item
-      const button = await listItem.$('div[role="button"]');
+    await page.click(selector);
+    console.log("button clicked");
 
-      if (button) {
-        // Click the button
-        await button.click();
-        console.log("Button clicked!");
+    console.log("looking for All time input");
+    const checkbox =
+      "div > div:nth-child(1) > div > div > div > div > div.x78zum5.xdt5ytf.x1iyjqo2 > div > div > div > div > div > div.x1o1ewxj.x3x9cwd.x1e5q0jg.x13rtm0m.x78zum5.xdt5ytf.x1iyjqo2.x1al4vs7 > div > div.xb57i2i.x1q594ok.x5lxg6s.x78zum5.xdt5ytf.x6ikm8r.x1ja2u2z.x1pq812k.x1rohswg.xfk6m8.x1yqm8si.xjx87ck.xx8ngbg.xwo3gff.x1n2onr6.x1oyok0e.x1odjw0f.x1iyjqo2.xy5w88m > div.x78zum5.xdt5ytf.x1iyjqo2.x1n2onr6.xaci4zi.x129vozr > div.x78zum5.xdt5ytf.x1iyjqo2.xx6bls6.x889kno > div > div > div:nth-child(2) > div > div > div > div > label:nth-child(7) > div.x9f619.x1n2onr6.x1ja2u2z.x1qjc9v5.x78zum5.xdt5ytf.xl56j7k.xeuugli.xdl72j9.x1iyjqo2.x2lah0s.x1mq37bv.x1pi30zi.x1swvt13.x1gw22gp.x188425o.x19cbwz6.x79zeqe.xgugjxj.x2oemzd > div > div.x9f619.x1n2onr6.x1ja2u2z.xdt5ytf.x2lah0s.x193iq5w.xeuugli.x78zum5 > div > input";
+    await page.waitForSelector(checkbox);
+    console.log("all time input found");
+    // Click the checkbox
+    await page.evaluate(async (selector) => {
+      const checkbox = document.querySelector(selector);
+      if (checkbox) {
+        checkbox.click();
+        console.log("Checkbox clicked");
+        await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for any JavaScript handling
+        checkbox.setAttribute("aria-checked", "true");
       } else {
-        console.log("Button not found within the list item");
+        console.log("Checkbox not found");
       }
-    } else {
-      console.log("List item not found within the list");
-    }
+    }, checkbox);
 
-    await page.waitForSelector('input[name="All time"]');
+    // Wait for aria-checked attribute to be 'true'
+    await page.waitForFunction(
+      (selector) => {
+        const checkbox = document.querySelector(selector);
+        return checkbox && checkbox.getAttribute("aria-checked") === "true";
+      },
+      { timeout: 5000 },
+      checkbox
+    );
+    console.log("Checkbox checked");
 
-    // Change the aria-checked property to 'true'
-    await page.evaluate(() => {
-      const inputElement = document.querySelector('input[name="All time"]');
-      if (inputElement) {
-        inputElement.setAttribute("aria-checked", "true");
-      } else {
-        console.log("Input element not found");
-      }
-    });
-
-    const divSelector = 'div[role="button"][tabindex="0"]';
+    const divSelector =
+      "div > div:nth-child(1) > div > div > div > div > div.x78zum5.xdt5ytf.x1iyjqo2 > div > div > div > div > div > div.x1o1ewxj.x3x9cwd.x1e5q0jg.x13rtm0m.x78zum5.xdt5ytf.x1iyjqo2.x1al4vs7 > div > div.xlp1x4z.x1ey2m1c.xds687c.x10l6tqk.x17qophe.xv7j57z > div.x6ikm8r.x10wlt62 > div > div > div > div > div > div > div";
+    console.log("looking for save button");
     await page.waitForSelector(divSelector);
+    console.log("save button found");
     await page.click(divSelector);
+    console.log("save button clicked");
   }
 
   async function clickFormatJSON() {
     const divSelector =
-      'div[role="list"] > div[role="listitem"]:nth-of-type(2) div[role="button"]';
+      "div > div:nth-child(1) > div > div > div > div > div.x78zum5.xdt5ytf.x1iyjqo2 > div > div > div > div > div > div.x1o1ewxj.x3x9cwd.x1e5q0jg.x13rtm0m.x78zum5.xdt5ytf.x1iyjqo2.x1al4vs7 > div > div.xb57i2i.x1q594ok.x5lxg6s.x78zum5.xdt5ytf.x6ikm8r.x1ja2u2z.x1pq812k.x1rohswg.xfk6m8.x1yqm8si.xjx87ck.xx8ngbg.xwo3gff.x1n2onr6.x1oyok0e.x1odjw0f.x1iyjqo2.xy5w88m > div.x78zum5.xdt5ytf.x1iyjqo2.x1n2onr6.xaci4zi.x129vozr > div.x78zum5.xdt5ytf.x1iyjqo2.xx6bls6.x889kno > div > div > div:nth-child(5) > div > div > div > div > div > div:nth-child(2) > div";
+    console.log("looking for button");
     await page.waitForSelector(divSelector);
-    await page.click(divSelector);
-
-    await page.evaluate(() => {
-      const inputElement = document.querySelector('div input[name="JSON"]');
-      if (inputElement) {
-        inputElement.setAttribute("aria-checked", "true");
+    console.log("button found");
+    const buttonProperties = await page.evaluate((selector) => {
+      const button = document.querySelector(selector);
+      if (!button) {
+        return null;
       }
-    });
+      const properties = {
+        offsetWidth: button.offsetWidth,
+        offsetHeight: button.offsetHeight,
+        visibility: window.getComputedStyle(button).visibility,
+        display: window.getComputedStyle(button).display,
+        disabled: button.disabled,
+        ariaDisabled: button.getAttribute("aria-disabled"),
+        innerText: button.innerText,
+        innerHTML: button.innerHTML,
+        name: button.getAttribute("name"),
+      };
+      return properties;
+    }, divSelector);
+    console.log(buttonProperties);
+    //await page.click(divSelector);
+    // Click using page.evaluate
+    await page.evaluate((selector) => {
+      const button = document.querySelector(selector);
+      if (button) {
+        button.click();
+        console.log("Button clicked via evaluate");
+      } else {
+        console.log("Button not found for click");
+      }
+    }, divSelector);
 
-    const saveDiv = 'div[role="button"][tabindex="0"]';
+    console.log("button clicked");
+
+    const checkboxJSON =
+      "div > div:nth-child(1) > div > div > div > div > div.x78zum5.xdt5ytf.x1iyjqo2 > div > div > div > div > div > div.x1o1ewxj.x3x9cwd.x1e5q0jg.x13rtm0m.x78zum5.xdt5ytf.x1iyjqo2.x1al4vs7 > div > div.xb57i2i.x1q594ok.x5lxg6s.x78zum5.xdt5ytf.x6ikm8r.x1ja2u2z.x1pq812k.x1rohswg.xfk6m8.x1yqm8si.xjx87ck.xx8ngbg.xwo3gff.x1n2onr6.x1oyok0e.x1odjw0f.x1iyjqo2.xy5w88m > div.x78zum5.xdt5ytf.x1iyjqo2.x1n2onr6.xaci4zi.x129vozr > div.x78zum5.xdt5ytf.x1iyjqo2.xx6bls6.x889kno > div > div > div:nth-child(2) > div > div > div > div > label:nth-child(2) > div.x9f619.x1n2onr6.x1ja2u2z.x1qjc9v5.x78zum5.xdt5ytf.xl56j7k.xeuugli.xdl72j9.x1iyjqo2.x2lah0s.x1mq37bv.x1pi30zi.x1swvt13.x1gw22gp.x188425o.x19cbwz6.x79zeqe.xgugjxj.x2oemzd > div > div.x9f619.x1n2onr6.x1ja2u2z.xdt5ytf.x2lah0s.x193iq5w.xeuugli.x78zum5 > div > input";
+    await page.waitForSelector(checkboxJSON);
+
+    // Click the checkbox
+    await page.evaluate(async (selector) => {
+      const checkbox = document.querySelector(selector);
+      if (checkbox) {
+        checkbox.click();
+        console.log("Checkbox clicked");
+        await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for any JavaScript handling
+        checkbox.setAttribute("aria-checked", "true");
+      } else {
+        console.log("Checkbox not found");
+      }
+    }, checkboxJSON);
+
+    // Wait for aria-checked attribute to be 'true'
+    await page.waitForFunction(
+      (selector) => {
+        const checkbox = document.querySelector(selector);
+        return checkbox && checkbox.getAttribute("aria-checked") === "true";
+      },
+      { timeout: 5000 },
+      checkboxJSON
+    );
+    console.log("JSON Checkbox checked");
+
+    const saveDiv =
+      "div > div:nth-child(1) > div > div > div > div > div.x78zum5.xdt5ytf.x1iyjqo2 > div > div > div > div > div > div.x1o1ewxj.x3x9cwd.x1e5q0jg.x13rtm0m.x78zum5.xdt5ytf.x1iyjqo2.x1al4vs7 > div > div.xlp1x4z.x1ey2m1c.xds687c.x10l6tqk.x17qophe.xv7j57z > div.x6ikm8r.x10wlt62 > div > div > div > div > div > div > div";
     await page.waitForSelector(saveDiv);
+    console.log("button found");
     await page.click(saveDiv);
+    console.log("button clicked");
   }
 
   async function createFiles() {
-    const divSelector = 'div[role="button"][tabindex="0"]';
+    const divSelector =
+      "div > div:nth-child(1) > div > div > div > div > div.x78zum5.xdt5ytf.x1iyjqo2 > div > div > div > div > div > div.x1o1ewxj.x3x9cwd.x1e5q0jg.x13rtm0m.x78zum5.xdt5ytf.x1iyjqo2.x1al4vs7 > div > div.xlp1x4z.x1ey2m1c.xds687c.x10l6tqk.x17qophe.xv7j57z > div.x6ikm8r.x10wlt62 > div > div > div:nth-child(1) > div > div > div > div";
+
     await page.waitForSelector(divSelector);
-    await page.click(divSelector);
+    console.log("found create files button");
+    //await page.click(divSelector);
+    await page.evaluate(async (selector) => {
+      const checkbox = document.querySelector(selector);
+      if (checkbox) {
+        checkbox.click();
+        console.log("div clicked");
+        await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for any JavaScript handling
+      } else {
+        console.log("div not found");
+      }
+    }, divSelector);
+    console.log("clicked create files");
   }
 
   await clickContinue();
