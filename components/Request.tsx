@@ -22,13 +22,13 @@ const Request = () => {
   return (
     <div>
       <Dialog>
-        <DialogTrigger className="items-center justify-center shadow-inner shadow-blue-700  h-20 w-[300px] flex rounded-lg text-white font-Switzer font-semibold">
+        <DialogTrigger className="items-center justify-center bg-slate-200 text-xl hover:bg-blue-700 hover:text-white text-blue-700  h-14 w-[200px] flex rounded-lg  font-Switzer font-semibold">
           Request Files
         </DialogTrigger>
         <DialogContent className=" bg-slate-950 rounded-lg border border-blue-700">
           <DialogHeader>
-            <DialogTitle className="text-white font-Switzer pb-4">
-              Request files download from Facebook?
+            <DialogTitle className="text-white font-Switzer pb-4 tracking-wide text-2xl">
+              Request files from Facebook?
             </DialogTitle>
             <DialogDescription>
               <p>
@@ -49,7 +49,7 @@ const Request = () => {
           </DialogHeader>
           <button
             onClick={handleRequestDownload}
-            className="text-white shadow-inner shadow-blue-700 w-fit justify-self-center rounded-lg p-2 hover:text-white hover:scale-105 font-Switzer font-semibold"
+            className="bg-slate-200 text-xl hover:bg-blue-700 hover:text-white text-blue-700 w-fit justify-self-center rounded-lg p-2 font-semibold font-Switzer tracking-wide"
           >
             Request Files
           </button>

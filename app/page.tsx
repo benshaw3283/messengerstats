@@ -1,7 +1,7 @@
 "use client";
 
 import { useToast } from "@/components/ui/use-toast";
-
+import FolderDropzone from "@/components/DragAndDrop";
 import React from "react";
 import {
   Select,
@@ -35,12 +35,27 @@ export default function Home() {
   const [fileMessages, setFileMessages] = React.useState<Message[]>([]);
   const [participants, setParticipants] = React.useState<Participant[]>([]);
   const [selectedValue, setSelectedValue] = React.useState<number>(0);
-  const [selectedWord, setSelectedWord] = React.useState<FormData>();
+
   const convoTitleRef = React.useRef<string>("");
   const fileInputRef = React.useRef(null);
   const div1Ref = React.useRef<any>(null);
   const div2Ref = React.useRef<any>(null);
   const div3Ref = React.useRef<any>(null);
+
+  const handleFileSelect = async (event: any) => {
+    const files = event.target.files;
+
+    if (!files) {
+      return;
+    }
+
+    const fileListArray: File[] = Array.from(files);
+    const jsonFiles = fileListArray.filter(
+      (file) => file.type === "application/json" || file.name.endsWith(".json")
+    );
+
+    setSelectedFiles(jsonFiles);
+  };
 
   // let folderName = selectedFiles[0];
 
@@ -53,21 +68,6 @@ export default function Home() {
 
   const handleChange = (value: string) => {
     setSelectedValue(parseInt(value));
-  };
-
-  const handleWordChange = (formData: FormData) => {
-    const word: any = formData.get("wordSearch");
-    setSelectedWord(word);
-  };
-
-  const handleFileSelect = async (event: any) => {
-    const files = event.target.files; // Access the FileList object
-
-    // Convert the FileList object to an array
-    const fileListArray: File[] = Array.from(files);
-
-    // Update state to store the array of selected files
-    setSelectedFiles(fileListArray);
   };
 
   const readParticipants = async () => {
@@ -191,56 +191,6 @@ export default function Home() {
     return sortedSenderList;
   };
 
-  const wordOccurrences = (word: string | any) => {
-    // Function to find messages containing the specified word/s
-    const findMessagesWithWord = (messages: any) => {
-      const messagesWithWord = messages.filter(
-        (message: Message) => message?.content && message.content.includes(word)
-      );
-      return messagesWithWord;
-    };
-
-    // Get messages containing the specified word
-    const messagesWithWord = findMessagesWithWord(fileMessages);
-
-    // Create a map to count messages by sender
-    const messagesCountBySender: any = {};
-    messagesWithWord.forEach((message: Message) => {
-      const senderName = message.sender_name;
-      if (!messagesCountBySender[senderName]) {
-        messagesCountBySender[senderName] = 1;
-      } else {
-        messagesCountBySender[senderName]++;
-      }
-    });
-
-    // Convert messagesCountBySender to an array for sorting
-    const senderList = Object.entries(messagesCountBySender);
-
-    // Sort senderList by message count
-    senderList.sort((a: any, b: any) => b[1] - a[1]);
-
-    // Render the sorted list of senders and their message counts
-    const sortedSenderList = senderList.map(
-      ([senderName, messageCount], index) => (
-        <div
-          className={
-            index === 0
-              ? "text-2xl font-bold flex flex-row justify-start w-full"
-              : "font-semibold text-xl flex flex-row justify-start py-1 w-full"
-          }
-          key={senderName}
-        >
-          <p className="pr-2 ">{`${index + 1}.`}</p>
-          <p className="pr-4 flex w-full lg:pl-4 pl-2">{senderName}</p>
-          <p className="font-bold text-xl pl-4">{addComma(messageCount)}</p>
-        </div>
-      )
-    );
-
-    return sortedSenderList;
-  };
-
   // Function to find the user who reacted the most
   const findReactedMost = (messages: Message[]) => {
     const reactionCounts: any = {};
@@ -318,24 +268,46 @@ export default function Home() {
   }, [selectedFiles]);
 
   return (
-    <main className="bg-slate-950 text-white min-h-screen">
-      <div ref={div1Ref} className="flex flex-col container items-center">
-        <h1 className="flex self-center font-Switzer font-semibold lg:text-3xl text-2xl py-4">
+    <main className="bg-slate-950 text-white min-h-screen max-w-screen">
+      <div className="flex flex-col ">
+        <h1 className="flex  font-Switzer font-semibold  text-8xl py-4 pl-4 pb-24">
           Facebook Messenger Stats
         </h1>
-        <div className="w-screen flex flex-col gap-4">
-          <div className="ml-[50px]">
-            <Request />
-          </div>
-          <div className="place-self-end mr-[50px]">
-            <div className="shadow-inner shadow-blue-700  h-20 w-[300px] flex rounded-lg text-blue-700 hover:text-white ">
-              <button
-                onClick={handleButtonClick}
-                className="absolute self-center w-[300px] h-20 "
-              >
-                Choose Files
-              </button>
 
+        <div className=" flex flex-col gap-4 pl-10">
+          <div className="h-[200px] w-[600px] flex  rounded-lg rounded-t-none rounded-br-none flex-col border-2 border-r-0 border-t-0  border-blue-700">
+            <div className="bg-blue-700 rounded-tl-none w-full h-14 rounded-t-lg items-center flex pl-4">
+              <h2 className="text-white font-Switzer font-semibold text-3xl">
+                Request Files from Facebook
+              </h2>
+            </div>
+            <div className="p-2 pt-4 pb-0">
+              <p>Facebook takes up to a day for your files to be ready</p>
+              <p>{`You will receive a notification when they're ready to be `}</p>
+              <p>
+                downloaded{" "}
+                <a className="font-semibold text-blue-700 underline cursor-pointer hover:text-white">
+                  here
+                </a>
+              </p>
+            </div>
+            <div className="h-full justify-end flex place-items-end p-2">
+              <Request />
+            </div>
+          </div>
+          <div className="h-[200px] w-[600px] flex  rounded-lg rounded-t-none rounded-br-none flex-col border-2 border-r-0 border-t-0  border-blue-700">
+            <div className="bg-blue-700 rounded-tl-none w-full h-14 rounded-t-lg items-center flex pl-4">
+              <h2 className="text-white font-Switzer font-semibold text-3xl">
+                Choose Files
+              </h2>
+            </div>
+            <div className="p-2 pt-4 pb-0">
+              <p>
+                Drop the zip file in the area below and enter the name of the
+                conversation you want to see the stats of.
+              </p>
+            </div>
+            <div className="flex justify-end items-end p-2">
               <input
                 type="file"
                 ref={fileInputRef}
@@ -344,25 +316,19 @@ export default function Home() {
                 webkitdirectory=""
                 multiple
                 onChange={handleFileSelect}
-                className="rounded-sm w-full hidden"
+                className="rounded-sm w-full "
               />
+              <p className="text-white">{selectedFiles.length}</p>
             </div>
           </div>
         </div>
-
-        {fileMessages.length === 0 && (
-          <p className="text-sm text-muted text-slate-400 mt-3">
-            * Facebook takes up to 1 day to have your files ready to download
-          </p>
-        )}
       </div>
-      <div className="border border-white mt-6"></div>
 
       {selectedFiles.length ? (
         <div className="flex flex-col items-center ">
           <section className="bg-neutral-100 p-4 rounded-lg mt-2 border-2 border-blue-700">
             <div className="bg-blue-700 rounded-lg p-4   z-10">
-              <h1 className="lg:text-5xl text-4xl font-semibold p-3  rounded-lg">
+              <h1 className="lg:text-5xl text-4xl font-semibold p-3 rounded-lg">
                 {convoTitleRef.current}
               </h1>
             </div>
