@@ -1,5 +1,5 @@
 "use client";
-import Tutorial from "@/components/Tutorial";
+
 import { useToast } from "@/components/ui/use-toast";
 
 import React from "react";
@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Request from "@/components/Request";
 
 interface Reaction {
   reaction: string;
@@ -317,36 +318,41 @@ export default function Home() {
   }, [selectedFiles]);
 
   return (
-    <main className="bg-slate-950 text-white">
+    <main className="bg-slate-950 text-white min-h-screen">
       <div ref={div1Ref} className="flex flex-col container items-center">
-        <h1 className="flex self-center font-bold lg:text-3xl text-2xl py-4">
+        <h1 className="flex self-center font-Switzer font-semibold lg:text-3xl text-2xl py-4">
           Facebook Messenger Stats
         </h1>
+        <div className="w-screen flex flex-col gap-4">
+          <div className="ml-[50px]">
+            <Request />
+          </div>
+          <div className="place-self-end mr-[50px]">
+            <div className="shadow-inner shadow-blue-700  h-20 w-[300px] flex rounded-lg text-blue-700 hover:text-white ">
+              <button
+                onClick={handleButtonClick}
+                className="absolute self-center w-[300px] h-20 "
+              >
+                Choose Files
+              </button>
 
-        <div className="flex justify-center items-center">
-          <div className="border-4 p-2 rounded-sm bg-white w-[225px]  h-[60px] flex">
-            <button
-              onClick={handleButtonClick}
-              className="absolute bg-blue-700  hover:scale-110  w-[200px] h-[50px] rounded-sm font-semibold self-center "
-            >
-              Choose Files
-            </button>
-
-            <input
-              type="file"
-              ref={fileInputRef}
-              // @ts-ignore
-              directory=""
-              webkitdirectory=""
-              multiple
-              onChange={handleFileSelect}
-              className="rounded-sm w-[110px] hidden"
-            />
+              <input
+                type="file"
+                ref={fileInputRef}
+                // @ts-ignore
+                directory=""
+                webkitdirectory=""
+                multiple
+                onChange={handleFileSelect}
+                className="rounded-sm w-full hidden"
+              />
+            </div>
           </div>
         </div>
+
         {fileMessages.length === 0 && (
           <p className="text-sm text-muted text-slate-400 mt-3">
-            * Facebook takes about 1 day to have your files ready to download
+            * Facebook takes up to 1 day to have your files ready to download
           </p>
         )}
       </div>
@@ -512,8 +518,6 @@ export default function Home() {
           </p>
         </div>
       )}
-
-      <Tutorial />
     </main>
   );
 }

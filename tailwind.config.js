@@ -20,6 +20,7 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ["var(--font-sans)", ...fontFamily.sans],
+        Switzer: ["Switzer", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
