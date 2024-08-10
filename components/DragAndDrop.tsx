@@ -20,7 +20,7 @@ const formSchema = z.object({
   file: z.any(),
   /*.refine(
       (file: File) =>
-        file instanceof File && file.type === "application/x-zip-compressed",
+        file instanceof File && file.type === ("application/x-zip-compressed" || "application/zip"),
       {
         message: "Please upload a valid ZIP file.",
       }
@@ -31,7 +31,7 @@ const formSchema = z.object({
 const ZipFileDropzone: React.FC = () => {
   const [dragging, setDragging] = useState<boolean>(false);
   const [status, setStatus] = useState<string>("");
-  const [file, setFile] = useState<File | null>(null); // Local file state
+  const [fuck, setFuck] = useState<File | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -61,6 +61,15 @@ const ZipFileDropzone: React.FC = () => {
     handleFileUpload(files);
   };
 
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      form.setValue("file", selectedFile); // Set the file in form state
+      setFuck(selectedFile);
+      console.log(fuck);
+    }
+  };
+
   const handleFileUpload = async (files: File[]) => {
     const zipFile = files.find((file) => file.name.endsWith(".zip"));
 
@@ -68,14 +77,15 @@ const ZipFileDropzone: React.FC = () => {
       setStatus("Please upload a ZIP file.");
       return;
     }
-    setFile(zipFile);
-    console.log("file:", file);
+    form.setValue("file", zipFile);
+    console.log("file:", zipFile);
   };
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    console.log("onSubmit", data);
-
-    /*   try {
+    try {
+      const formData = new FormData();
+      formData.append("file", data.file); // Append the file
+      formData.append("convoName", data.convoName);
       const response = await fetch("http://localhost:3001/upload", {
         method: "POST",
         body: formData,
@@ -90,12 +100,7 @@ const ZipFileDropzone: React.FC = () => {
     } catch (error: any) {
       setStatus("Error: " + error.message);
     }
-      */
-    // Convert FormData entries to an array and log each entry
-    console.log(data);
   };
-
-  const fileRef = form.register("file");
 
   return (
     <Form {...form}>
@@ -119,8 +124,8 @@ const ZipFileDropzone: React.FC = () => {
                     <Input
                       type="file"
                       accept=".zip"
-                      className="opacity-0 w-[250px] h-[80px] absolute bg-red-500"
-                      {...fileRef}
+                      className="opacity-0 w-[250px] h-[80px] absolute cursor-pointer"
+                      onChange={(e) => handleFileChange(e)}
                     />
                   </FormControl>
                   <FormMessage />
@@ -135,9 +140,31 @@ const ZipFileDropzone: React.FC = () => {
             );
           }}
         />
-        <button type="submit">submit</button>
+        <FormField
+          control={form.control}
+          name="convoName"
+          render={({ field }) => {
+            return (
+              <FormItem>
+                <FormControl>
+                  <Input type="string" className="text-blue-700" {...field} />
+                </FormControl>
+                <FormMessage />
+                <FormLabel
+                  htmlFor="convoName"
+                  className="cursor-pointer  text-blue-700 font-semibold"
+                >
+                  Drag and drop a ZIP file here or click to select
+                </FormLabel>
+              </FormItem>
+            );
+          }}
+        />
+        <button type="submit" className="hover:bg-red-500">
+          submit
+        </button>
         <p className="text-red-500 z-20">{status}</p>
-        <p className="text-red-500">{file?.name}</p>
+        <p className="text-red-500">{fuck?.name || "fuck"}</p>
       </form>
     </Form>
   );

@@ -10,11 +10,12 @@ const upload = multer({ dest: path.join(__dirname, "uploads/tmp") }); // Use a t
 
 app.use(cors());
 
-app.post("/upload", upload.single("zipFile"), async (req, res) => {
+app.post("/upload", upload.single("file"), async (req, res) => {
   const zipPath = req.file.path;
   const outputDir = path.join(__dirname, "uploads");
 
   const tempUploadDir = path.join(__dirname, "uploads/tmp");
+  const convoName = req.body.convoName;
 
   console.log("zipPath:", zipPath);
   console.log("outputDir:", outputDir);
@@ -37,7 +38,7 @@ app.post("/upload", upload.single("zipFile"), async (req, res) => {
 
       if (
         fileName.includes(
-          "your_facebook_activity/messages/inbox/chickenfucken_1366923003364098"
+          `your_facebook_activity/messages/inbox/${convoName}`
         ) &&
         isJson
       ) {
