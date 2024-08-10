@@ -14,6 +14,11 @@ app.post("/upload", upload.single("zipFile"), async (req, res) => {
   const zipPath = req.file.path;
   const outputDir = path.join(__dirname, "uploads");
 
+  const tempUploadDir = path.join(__dirname, "uploads/tmp");
+
+  console.log("zipPath:", zipPath);
+  console.log("outputDir:", outputDir);
+
   try {
     // Ensure the output directory exists
     if (!fs.existsSync(outputDir)) {
@@ -47,6 +52,24 @@ app.post("/upload", upload.single("zipFile"), async (req, res) => {
       try {
         // Delay deletion of the ZIP file until processing is complete
         await fs.promises.unlink(zipPath);
+
+        // Delete all files in the uploads/tmp directory
+        setTimeout(() => {
+          fs.readdir(tempUploadDir, (err, files) => {
+            if (err) {
+              console.error("Error reading temporary directory:", err.message);
+              return;
+            }
+
+            for (const file of files) {
+              fs.unlink(path.join(tempUploadDir, file), (err) => {
+                if (err) {
+                  console.error("Error deleting temporary file:", err.message);
+                }
+              });
+            }
+          });
+        }, 300);
 
         res.status(200).send("Files extracted successfully.");
       } catch (err) {

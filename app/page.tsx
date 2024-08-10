@@ -1,7 +1,7 @@
 "use client";
 
 import { useToast } from "@/components/ui/use-toast";
-import FolderDropzone from "@/components/DragAndDrop";
+import ZipFileDropzone from "@/components/DragAndDrop";
 import React from "react";
 import {
   Select,
@@ -307,18 +307,9 @@ export default function Home() {
                 conversation you want to see the stats of.
               </p>
             </div>
-            <div className="flex justify-end items-end p-2">
-              <input
-                type="file"
-                ref={fileInputRef}
-                // @ts-ignore
-                directory=""
-                webkitdirectory=""
-                multiple
-                onChange={handleFileSelect}
-                className="rounded-sm w-full "
-              />
-              <p className="text-white">{selectedFiles.length}</p>
+            <div className="flex flex-row items-end p-2">
+              <ZipFileDropzone />
+              <div></div>
             </div>
           </div>
         </div>

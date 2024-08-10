@@ -1,11 +1,44 @@
+"use client";
 import React, { useState, DragEvent, ChangeEvent } from "react";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 
-interface FolderDropzoneProps {
-  onFilesSelected: (files: File[]) => void;
-}
+const formSchema = z.object({
+  convoName: z
+    .string()
+    .min(2, { message: "Conversation name must be over 2 characters" }),
+  file: z.any(),
+  /*.refine(
+      (file: File) =>
+        file instanceof File && file.type === "application/x-zip-compressed",
+      {
+        message: "Please upload a valid ZIP file.",
+      }
+    ),
+    */
+});
 
-const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesSelected }) => {
+const ZipFileDropzone: React.FC = () => {
   const [dragging, setDragging] = useState<boolean>(false);
+  const [status, setStatus] = useState<string>("");
+  const [file, setFile] = useState<File | null>(null); // Local file state
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      convoName: "",
+    },
+  });
 
   const handleDragEnter = (e: DragEvent) => {
     e.preventDefault();
@@ -25,51 +58,89 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesSelected }) => {
     setDragging(false);
 
     const files = Array.from(e.dataTransfer.files);
-    handleFileSelection(files);
+    handleFileUpload(files);
   };
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    handleFileSelection(files);
+  const handleFileUpload = async (files: File[]) => {
+    const zipFile = files.find((file) => file.name.endsWith(".zip"));
+
+    if (!zipFile) {
+      setStatus("Please upload a ZIP file.");
+      return;
+    }
+    setFile(zipFile);
+    console.log("file:", file);
   };
 
-  const handleFileSelection = (files: File[]) => {
-    // Filter to include only JSON files
-    const jsonFiles = files.filter(
-      (file) => file.type === "application/json" || file.name.endsWith(".json")
-    );
-    onFilesSelected(jsonFiles);
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    console.log("onSubmit", data);
+
+    /*   try {
+      const response = await fetch("http://localhost:3001/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        setStatus(responseData.message || "Files extracted successfully.");
+      } else {
+        setStatus("Upload failed.");
+      }
+    } catch (error: any) {
+      setStatus("Error: " + error.message);
+    }
+      */
+    // Convert FormData entries to an array and log each entry
+    console.log(data);
   };
+
+  const fileRef = form.register("file");
 
   return (
-    <div
-      style={{
-        border: "2px dashed #ccc",
-        padding: "20px",
-        borderRadius: "8px",
-        textAlign: "center",
-        cursor: "pointer",
-        backgroundColor: dragging ? "#f0f0f0" : "#ffffff",
-      }}
-      onDragEnter={handleDragEnter}
-      onDragOver={(e) => e.preventDefault()}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-    >
-      <input
-        type="file"
-        multiple
-        // @ts-ignore
-        webkitdirectory="true"
-        onChange={handleFileChange}
-        style={{ display: "none" }}
-        id="folder-upload"
-      />
-      <label htmlFor="folder-upload" style={{ cursor: "pointer" }}>
-        Drag and drop a folder here or click to select
-      </label>
-    </div>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-row">
+        <FormField
+          control={form.control}
+          name="file"
+          render={({ field }) => {
+            return (
+              <FormItem>
+                <div
+                  className={`border-2 border-dashed border-blue-700 cursor-pointer rounded-lg  ${
+                    dragging && "bg-blue-700 border-white"
+                  } bg-white w-[250px] h-[80px] `}
+                  onDragEnter={handleDragEnter}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
+                  <FormControl>
+                    <Input
+                      type="file"
+                      accept=".zip"
+                      className="opacity-0 w-[250px] h-[80px] absolute bg-red-500"
+                      {...fileRef}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                  <FormLabel
+                    htmlFor="zip-upload"
+                    className="cursor-pointer  text-blue-700 font-semibold"
+                  >
+                    Drag and drop a ZIP file here or click to select
+                  </FormLabel>
+                </div>
+              </FormItem>
+            );
+          }}
+        />
+        <button type="submit">submit</button>
+        <p className="text-red-500 z-20">{status}</p>
+        <p className="text-red-500">{file?.name}</p>
+      </form>
+    </Form>
   );
 };
 
-export default FolderDropzone;
+export default ZipFileDropzone;
