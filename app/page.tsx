@@ -42,29 +42,7 @@ export default function Home() {
   const div2Ref = React.useRef<any>(null);
   const div3Ref = React.useRef<any>(null);
 
-  const handleFileSelect = async (event: any) => {
-    const files = event.target.files;
-
-    if (!files) {
-      return;
-    }
-
-    const fileListArray: File[] = Array.from(files);
-    const jsonFiles = fileListArray.filter(
-      (file) => file.type === "application/json" || file.name.endsWith(".json")
-    );
-
-    setSelectedFiles(jsonFiles);
-  };
-
   // let folderName = selectedFiles[0];
-
-  const handleButtonClick = () => {
-    // Trigger the click event of the file input
-    if (fileInputRef.current) {
-      (fileInputRef?.current as HTMLInputElement).click();
-    }
-  };
 
   const handleChange = (value: string) => {
     setSelectedValue(parseInt(value));

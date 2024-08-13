@@ -3,6 +3,7 @@ import React, { useState, DragEvent, ChangeEvent } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import ProgressBar from "./Progress";
 import {
   Form,
   FormControl,
@@ -66,7 +67,6 @@ const ZipFileDropzone: React.FC = () => {
     if (selectedFile) {
       form.setValue("file", selectedFile); // Set the file in form state
       setFuck(selectedFile);
-      console.log(fuck);
     }
   };
 
@@ -84,7 +84,7 @@ const ZipFileDropzone: React.FC = () => {
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
       const formData = new FormData();
-      formData.append("file", data.file); // Append the file
+      formData.append("file", data.file);
       formData.append("convoName", data.convoName);
       const response = await fetch("http://localhost:3001/upload", {
         method: "POST",
@@ -93,80 +93,86 @@ const ZipFileDropzone: React.FC = () => {
 
       if (response.ok) {
         const responseData = await response.json();
-        setStatus(responseData.message || "Files extracted successfully.");
+        setStatus(responseData.message);
+
+        console.log("fuck", fuck);
       } else {
         setStatus("Upload failed.");
       }
     } catch (error: any) {
       setStatus("Error: " + error.message);
+      console.log(status);
     }
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-row">
-        <FormField
-          control={form.control}
-          name="file"
-          render={({ field }) => {
-            return (
-              <FormItem>
-                <div
-                  className={`border-2 border-dashed border-blue-700 cursor-pointer rounded-lg  ${
-                    dragging && "bg-blue-700 border-white"
-                  } bg-white w-[250px] h-[80px] `}
-                  onDragEnter={handleDragEnter}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                >
+    <div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-row">
+          <FormField
+            control={form.control}
+            name="file"
+            render={({ field }) => {
+              return (
+                <FormItem>
+                  <div
+                    className={`border-2 border-dashed border-blue-700 cursor-pointer rounded-lg  ${
+                      dragging && "bg-blue-700 border-white"
+                    } bg-white w-[250px] h-[80px] `}
+                    onDragEnter={handleDragEnter}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                  >
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept=".zip"
+                        className="opacity-0 w-[250px] h-[80px] absolute cursor-pointer"
+                        onChange={(e) => handleFileChange(e)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                    <FormLabel
+                      htmlFor="zip-upload"
+                      className="cursor-pointer  text-blue-700 font-semibold"
+                    >
+                      Drag and drop a ZIP file here or click to select
+                    </FormLabel>
+                  </div>
+                </FormItem>
+              );
+            }}
+          />
+          <FormField
+            control={form.control}
+            name="convoName"
+            render={({ field }) => {
+              return (
+                <FormItem>
                   <FormControl>
-                    <Input
-                      type="file"
-                      accept=".zip"
-                      className="opacity-0 w-[250px] h-[80px] absolute cursor-pointer"
-                      onChange={(e) => handleFileChange(e)}
-                    />
+                    <Input type="string" className="text-blue-700" {...field} />
                   </FormControl>
                   <FormMessage />
                   <FormLabel
-                    htmlFor="zip-upload"
+                    htmlFor="convoName"
                     className="cursor-pointer  text-blue-700 font-semibold"
                   >
                     Drag and drop a ZIP file here or click to select
                   </FormLabel>
-                </div>
-              </FormItem>
-            );
-          }}
-        />
-        <FormField
-          control={form.control}
-          name="convoName"
-          render={({ field }) => {
-            return (
-              <FormItem>
-                <FormControl>
-                  <Input type="string" className="text-blue-700" {...field} />
-                </FormControl>
-                <FormMessage />
-                <FormLabel
-                  htmlFor="convoName"
-                  className="cursor-pointer  text-blue-700 font-semibold"
-                >
-                  Drag and drop a ZIP file here or click to select
-                </FormLabel>
-              </FormItem>
-            );
-          }}
-        />
-        <button type="submit" className="hover:bg-red-500">
-          submit
-        </button>
-        <p className="text-red-500 z-20">{status}</p>
-        <p className="text-red-500">{fuck?.name || "fuck"}</p>
-      </form>
-    </Form>
+                </FormItem>
+              );
+            }}
+          />
+          <button type="submit" className="hover:bg-red-500">
+            submit
+          </button>
+          <p className="text-red-500 z-20  ">{status}</p>
+          <p className="text-red-500">{fuck?.name || "fuck"}</p>
+        </form>
+      </Form>
+      <ProgressBar />
+    </div>
   );
 };
 
