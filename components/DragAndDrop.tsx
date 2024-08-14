@@ -32,7 +32,8 @@ const formSchema = z.object({
 const ZipFileDropzone: React.FC = () => {
   const [dragging, setDragging] = useState<boolean>(false);
   const [status, setStatus] = useState<string>("");
-  const [fuck, setFuck] = useState<File | null>(null);
+  const [begun, setBegun] = useState<boolean>(false);
+  const inputRef = React.useRef(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -59,6 +60,7 @@ const ZipFileDropzone: React.FC = () => {
     setDragging(false);
 
     const files = Array.from(e.dataTransfer.files);
+
     handleFileUpload(files);
   };
 
@@ -66,8 +68,8 @@ const ZipFileDropzone: React.FC = () => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       form.setValue("file", selectedFile); // Set the file in form state
-      setFuck(selectedFile);
     }
+    console.log(inputRef);
   };
 
   const handleFileUpload = async (files: File[]) => {
@@ -82,6 +84,7 @@ const ZipFileDropzone: React.FC = () => {
   };
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    setBegun(true);
     try {
       const formData = new FormData();
       formData.append("file", data.file);
@@ -94,10 +97,9 @@ const ZipFileDropzone: React.FC = () => {
       if (response.ok) {
         const responseData = await response.json();
         setStatus(responseData.message);
-
-        console.log("fuck", fuck);
       } else {
         setStatus("Upload failed.");
+        setBegun(false);
       }
     } catch (error: any) {
       setStatus("Error: " + error.message);
@@ -118,7 +120,11 @@ const ZipFileDropzone: React.FC = () => {
                   <div
                     className={`border-2 border-dashed border-blue-700 cursor-pointer rounded-lg  ${
                       dragging && "bg-blue-700 border-white"
-                    } bg-white w-[250px] h-[80px] `}
+                    } ${
+                      inputRef?.current?.value.length > 0
+                        ? "bg-green-500"
+                        : "bg-white"
+                    } w-[250px] h-[80px] `}
                     onDragEnter={handleDragEnter}
                     onDragOver={(e) => e.preventDefault()}
                     onDragLeave={handleDragLeave}
@@ -130,6 +136,7 @@ const ZipFileDropzone: React.FC = () => {
                         accept=".zip"
                         className="opacity-0 w-[250px] h-[80px] absolute cursor-pointer"
                         onChange={(e) => handleFileChange(e)}
+                        ref={inputRef}
                       />
                     </FormControl>
                     <FormMessage />
@@ -168,10 +175,10 @@ const ZipFileDropzone: React.FC = () => {
             submit
           </button>
           <p className="text-red-500 z-20  ">{status}</p>
-          <p className="text-red-500">{fuck?.name || "fuck"}</p>
         </form>
       </Form>
-      <ProgressBar />
+      {begun && <ProgressBar />}
+      <p>{inputRef?.current?.value}</p>
     </div>
   );
 };

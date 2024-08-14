@@ -14,7 +14,7 @@ const ProgressBar = () => {
     const fakeProgressInterval = setInterval(() => {
       setProgress((prev) => {
         if (prev < 5) {
-          return prev + 2;
+          return prev + 1;
         } else {
           clearInterval(fakeProgressInterval);
           setFakeProgress(false); // Stop fake progress and start real progress
@@ -53,7 +53,7 @@ const ProgressBar = () => {
   }, [completed, fakeProgress]);
 
   return (
-    <div>
+    <div >
       <Progress value={progress} />
       <p>{progress}%</p>
     </div>
