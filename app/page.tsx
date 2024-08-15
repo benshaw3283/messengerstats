@@ -29,16 +29,27 @@ interface Message {
   is_geoblocked_for_viewer: boolean;
 }
 
+interface Content {
+  image: any;
+  is_still_participant: boolean;
+  joinable_mode: any;
+  magic_words: Array<any>;
+  messages: Array<Message>;
+  participants: Array<Participant>;
+  thread_path: string;
+  title: string;
+}
+
 interface SelectedFile {
   fileName: string;
-  content: Object;
+  content: Content;
 }
 
 export default function Home() {
   const { toast } = useToast();
   const [selectedFiles, setSelectedFiles] = React.useState<SelectedFile[]>([]);
   const [fileMessages, setFileMessages] = React.useState<Message[]>([]);
-  const [participants, setParticipants] = React.useState<Participant[]>([]);
+  //const [participants, setParticipants] = React.useState<Participant[]>([]);
   const [selectedValue, setSelectedValue] = React.useState<number>(0);
 
   const convoTitleRef = React.useRef<string>("");
@@ -46,6 +57,10 @@ export default function Home() {
   const div1Ref = React.useRef<any>(null);
   const div2Ref = React.useRef<any>(null);
   const div3Ref = React.useRef<any>(null);
+
+  const participants = selectedFiles
+    ? selectedFiles[0]?.content?.participants
+    : [];
 
   const handleFilesUploaded = (files: any[]) => {
     setSelectedFiles(files);
@@ -57,52 +72,29 @@ export default function Home() {
     setSelectedValue(parseInt(value));
   };
 
-  const readParticipants = async () => {
-    try {
-      const message1File = selectedFiles.find(
-        (file) => file.fileName === "message_1.json"
-      );
-
-      if (!message1File) {
-        console.error("message_1.json not found in selected files.");
-        return;
+  const spreadMessages = async () => {
+    if (selectedFiles.length > 0) {
+      try {
+        let totalMessages = [];
+        for (const file of selectedFiles) {
+          const fileContents: Array<Message> = file.content.messages;
+          totalMessages.push(...fileContents);
+        }
+        setFileMessages((prev) => [...prev, ...totalMessages]);
+      } catch (error) {
+        console.error("Error spreading messages:", error);
       }
-
-      const fileContents = await message1File.fileObjects.content.text();
-      const jsonData = JSON.parse(fileContents);
-      const participantsArray = message1File.content.participants;
-
-      setParticipants(participantsArray);
-      console.log("Participants array:", participantsArray);
-    } catch (error) {
-      console.error("Error reading file:", error);
     }
   };
 
-  const readThenSpread = async () => {
-    try {
-      for (const file of selectedFiles) {
-        const fileContents = await file.fileObjects.text();
-        const jsonData = JSON.parse(fileContents);
-
-        convoTitleRef.current = jsonData.title;
-        const spread = [...jsonData.messages];
-
-        setFileMessages((prev) => [...prev, ...spread]);
-      }
-    } catch (error) {
-      console.error("Error reading file:", error);
-    }
-  };
-
-  const messageCounts = participants.map((participant) => {
+  const messageCounts = participants?.map((participant) => {
     const count = fileMessages?.filter(
       (message) => message.sender_name === participant.name
     ).length;
     return { name: participant.name, count: count };
   });
 
-  const sortedCount = messageCounts.sort((a, b) => b.count - a.count);
+  const sortedCount = messageCounts?.sort((a, b) => b.count - a.count);
 
   const numberReactions = (number: number) => {
     // Function to find messages with number or more reactions
@@ -229,8 +221,8 @@ export default function Home() {
   };
 
   React.useEffect(() => {
-    readThenSpread();
-    readParticipants();
+    spreadMessages();
+
     console.log("selectedFiles", selectedFiles);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFiles]);

@@ -44,7 +44,7 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
       const response = await fetch("/api/getFiles");
       const files = await response.json();
       console.log(files);
-      onFilesUploaded(files);
+      onFilesUploaded(files.fileObjects);
     } catch (error) {
       console.error("Error fetching files:", error);
     }
@@ -112,7 +112,7 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
       if (response.ok) {
         const responseData = await response.json();
         setStatus(responseData.message);
-        fetchFilesFromServer();
+        await fetchFilesFromServer();
       } else {
         setStatus("Upload failed.");
         setBegun(false);
