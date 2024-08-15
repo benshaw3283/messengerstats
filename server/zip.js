@@ -33,6 +33,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     // Create a read stream and process the ZIP file
     const fileStream = fs.createReadStream(zipPath);
     const extractStream = unzipper.Parse();
+    const extractedFiles = [];
 
     const countStream = fs.createReadStream(zipPath).pipe(unzipper.Parse());
     countStream.on("entry", function (entry) {
@@ -132,7 +133,20 @@ app.post("/upload", upload.single("file"), async (req, res) => {
           progressClient = null;
         }
 
-        res.status(200).json({ message: "Files extracted successfully." });
+        const jsonFiles = await Promise.all(
+          extractedFiles.map(async (filePath) => {
+            const content = await fs.promises.readFile(filePath, "utf-8");
+            return {
+              fileName: path.basename(filePath),
+              content: JSON.parse(content),
+            };
+          })
+        );
+
+        res.status(200).json({
+          message: "Files extracted successfully.",
+          files: jsonFiles,
+        });
       } catch (err) {
         res
           .status(500)

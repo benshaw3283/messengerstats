@@ -29,19 +29,28 @@ interface Message {
   is_geoblocked_for_viewer: boolean;
 }
 
+interface SelectedFile {
+  fileName: string;
+  content: Object;
+}
+
 export default function Home() {
   const { toast } = useToast();
-  const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
+  const [selectedFiles, setSelectedFiles] = React.useState<SelectedFile[]>([]);
   const [fileMessages, setFileMessages] = React.useState<Message[]>([]);
   const [participants, setParticipants] = React.useState<Participant[]>([]);
   const [selectedValue, setSelectedValue] = React.useState<number>(0);
 
   const convoTitleRef = React.useRef<string>("");
-  const fileInputRef = React.useRef(null);
+
   const div1Ref = React.useRef<any>(null);
   const div2Ref = React.useRef<any>(null);
   const div3Ref = React.useRef<any>(null);
 
+  const handleFilesUploaded = (files: any[]) => {
+    setSelectedFiles(files);
+    console.log("Files received from ZipFileDropzone:", files);
+  };
   // let folderName = selectedFiles[0];
 
   const handleChange = (value: string) => {
@@ -50,60 +59,40 @@ export default function Home() {
 
   const readParticipants = async () => {
     try {
-      // Find the file object for message_1.json
       const message1File = selectedFiles.find(
-        (file) => file.name === "message_1.json"
+        (file) => file.fileName === "message_1.json"
       );
+
       if (!message1File) {
         console.error("message_1.json not found in selected files.");
         return;
       }
 
-      const reader = new FileReader();
-      const blob = new Blob([message1File], { type: message1File.type });
+      const fileContents = await message1File.fileObjects.content.text();
+      const jsonData = JSON.parse(fileContents);
+      const participantsArray = message1File.content.participants;
 
-      reader.onload = (event: any) => {
-        const fileContents = event.target.result;
-        try {
-          const jsonData = JSON.parse(fileContents);
-          const participantsArray = jsonData.participants;
-          setParticipants(participantsArray);
-          console.log("Participants array:", participantsArray);
-        } catch (error) {
-          console.error("Error parsing JSON:", error);
-        }
-      };
-
-      reader.readAsText(blob);
+      setParticipants(participantsArray);
+      console.log("Participants array:", participantsArray);
     } catch (error) {
       console.error("Error reading file:", error);
     }
   };
 
   const readThenSpread = async () => {
-    selectedFiles.forEach((file, index) => {
-      const currentFile = selectedFiles[index];
-      const reader = new FileReader();
+    try {
+      for (const file of selectedFiles) {
+        const fileContents = await file.fileObjects.text();
+        const jsonData = JSON.parse(fileContents);
 
-      // Create a Blob object from the File object
-      const blob = new Blob([currentFile], { type: currentFile.type });
+        convoTitleRef.current = jsonData.title;
+        const spread = [...jsonData.messages];
 
-      reader.onload = (event: any) => {
-        const fileContents = event.target.result;
-
-        try {
-          const jsonData = JSON.parse(fileContents);
-          convoTitleRef.current = jsonData.title;
-          const spread: any = [...jsonData.messages];
-          setFileMessages((prev) => [...prev, ...spread]);
-        } catch (error) {
-          console.error("Error parsing JSON:", error);
-        }
-      };
-
-      // Pass the Blob object to readAsText()
-      reader.readAsText(blob);
-    });
+        setFileMessages((prev) => [...prev, ...spread]);
+      }
+    } catch (error) {
+      console.error("Error reading file:", error);
+    }
   };
 
   const messageCounts = participants.map((participant) => {
@@ -242,6 +231,7 @@ export default function Home() {
   React.useEffect(() => {
     readThenSpread();
     readParticipants();
+    console.log("selectedFiles", selectedFiles);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFiles]);
 
@@ -273,7 +263,7 @@ export default function Home() {
               <Request />
             </div>
           </div>
-          <div className="h-[200px] w-[600px] flex  rounded-lg rounded-t-none rounded-br-none flex-col border-2 border-r-0 border-t-0  border-blue-700">
+          <div className="h-[250px] w-[600px] flex  rounded-lg rounded-t-none rounded-br-none flex-col border-2 border-r-0 border-t-0  border-blue-700">
             <div className="bg-blue-700 rounded-tl-none w-full h-14 rounded-t-lg items-center flex pl-4">
               <h2 className="text-white font-Switzer font-semibold text-3xl">
                 Choose Files
@@ -285,9 +275,8 @@ export default function Home() {
                 conversation you want to see the stats of.
               </p>
             </div>
-            <div className="flex flex-row items-end p-2">
-              <ZipFileDropzone />
-              <div></div>
+            <div className="flex mt-12 p-2 ">
+              <ZipFileDropzone onFilesUploaded={handleFilesUploaded} />
             </div>
           </div>
         </div>

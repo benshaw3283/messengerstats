@@ -14,10 +14,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
+interface ZipFileDropzoneProps {
+  onFilesUploaded: (files: any[]) => void; // Add this prop
+}
+
 const formSchema = z.object({
-  convoName: z
-    .string()
-    .min(2, { message: "Conversation name must be over 2 characters" }),
+  convoName: z.string().min(2, { message: "Must be over 2 characters" }),
   file: z.any(),
   /*.refine(
       (file: File) =>
@@ -29,11 +31,24 @@ const formSchema = z.object({
     */
 });
 
-const ZipFileDropzone: React.FC = () => {
+const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
+  onFilesUploaded,
+}) => {
   const [dragging, setDragging] = useState<boolean>(false);
   const [status, setStatus] = useState<string>("");
   const [begun, setBegun] = useState<boolean>(false);
-  const inputRef = React.useRef(null);
+  const inputRef = React.useRef<any>(null);
+
+  const fetchFilesFromServer = async () => {
+    try {
+      const response = await fetch("/api/getFiles");
+      const files = await response.json();
+      console.log(files);
+      onFilesUploaded(files);
+    } catch (error) {
+      console.error("Error fetching files:", error);
+    }
+  };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -97,6 +112,7 @@ const ZipFileDropzone: React.FC = () => {
       if (response.ok) {
         const responseData = await response.json();
         setStatus(responseData.message);
+        fetchFilesFromServer();
       } else {
         setStatus("Upload failed.");
         setBegun(false);
@@ -109,6 +125,7 @@ const ZipFileDropzone: React.FC = () => {
 
   return (
     <div>
+      <p className="text-white text-xs">{inputRef?.current?.value}</p>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-row">
           <FormField
@@ -121,7 +138,7 @@ const ZipFileDropzone: React.FC = () => {
                     className={`border-2 border-dashed border-blue-700 cursor-pointer rounded-lg  ${
                       dragging && "bg-blue-700 border-white"
                     } ${
-                      inputRef?.current?.value.length > 0
+                      inputRef?.current?.value?.length > 0
                         ? "bg-green-500"
                         : "bg-white"
                     } w-[250px] h-[80px] `}
@@ -142,9 +159,9 @@ const ZipFileDropzone: React.FC = () => {
                     <FormMessage />
                     <FormLabel
                       htmlFor="zip-upload"
-                      className="cursor-pointer  text-blue-700 font-semibold"
+                      className="cursor-pointer justify-center mt-8 flex text-blue-700 font-semibold"
                     >
-                      Drag and drop a ZIP file here or click to select
+                      Drag and drop or select
                     </FormLabel>
                   </div>
                 </FormItem>
@@ -156,29 +173,35 @@ const ZipFileDropzone: React.FC = () => {
             name="convoName"
             render={({ field }) => {
               return (
-                <FormItem>
-                  <FormControl>
-                    <Input type="string" className="text-blue-700" {...field} />
-                  </FormControl>
-                  <FormMessage />
+                <FormItem className="pl-2 pt-1">
                   <FormLabel
                     htmlFor="convoName"
-                    className="cursor-pointer  text-blue-700 font-semibold"
+                    className="text-lg   text-white font-semibold"
                   >
-                    Drag and drop a ZIP file here or click to select
+                    Conversation Name
                   </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="string"
+                      className="text-blue-700 w-56"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               );
             }}
           />
-          <button type="submit" className="hover:bg-red-500">
+          <button
+            type="submit"
+            className="bg-slate-200 text-xl hover:bg-blue-700 hover:text-white text-blue-700 w-fit justify-self-center rounded-lg p-2 font-semibold font-Switzer tracking-wide h-fit ml-4 self-end px-3"
+          >
             submit
           </button>
           <p className="text-red-500 z-20  ">{status}</p>
         </form>
       </Form>
       {begun && <ProgressBar />}
-      <p>{inputRef?.current?.value}</p>
     </div>
   );
 };
