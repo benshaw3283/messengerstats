@@ -4,6 +4,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import ProgressBar from "./Progress";
+import { useToast } from "./ui/use-toast";
 import {
   Form,
   FormControl,
@@ -34,10 +35,10 @@ const formSchema = z.object({
 const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
   onFilesUploaded,
 }) => {
+  const { toast } = useToast();
   const [dragging, setDragging] = useState<boolean>(false);
   const [status, setStatus] = useState<string>("");
   const [begun, setBegun] = useState<boolean>(false);
-  const inputRef = React.useRef<any>(null);
 
   const fetchFilesFromServer = async () => {
     try {
@@ -75,31 +76,20 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
     setDragging(false);
 
     const files = Array.from(e.dataTransfer.files);
-
-    handleFileUpload(files);
+    form.setValue("file", files[0]);
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
+    const selectedFile = e.target?.files?.[0];
     if (selectedFile) {
-      form.setValue("file", selectedFile); // Set the file in form state
+      form.setValue("file", selectedFile);
+      form.trigger("file");
     }
-    console.log(inputRef);
-  };
-
-  const handleFileUpload = async (files: File[]) => {
-    const zipFile = files.find((file) => file.name.endsWith(".zip"));
-
-    if (!zipFile) {
-      setStatus("Please upload a ZIP file.");
-      return;
-    }
-    form.setValue("file", zipFile);
-    console.log("file:", zipFile);
   };
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setBegun(true);
+
     try {
       const formData = new FormData();
       formData.append("file", data.file);
@@ -112,9 +102,19 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
       if (response.ok) {
         const responseData = await response.json();
         setStatus(responseData.message);
+        toast({
+          title: responseData?.message,
+          variant: "default",
+          className: "border-2 border-white bg-green-600  text-white",
+        });
         await fetchFilesFromServer();
+        setBegun(false);
       } else {
         setStatus("Upload failed.");
+        toast({
+          title: "Upload failed",
+          variant: "destructive",
+        });
         setBegun(false);
       }
     } catch (error: any) {
@@ -123,11 +123,16 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
     }
   };
 
+  const fileName = form.getValues("file");
+
   return (
     <div>
-      <p className="text-white text-xs">{inputRef?.current?.value}</p>
+      <p>{fileName?.name}</p>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-row">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="flex flex-row items-end"
+        >
           <FormField
             control={form.control}
             name="file"
@@ -137,11 +142,7 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
                   <div
                     className={`border-2 border-dashed border-blue-700 cursor-pointer rounded-lg  ${
                       dragging && "bg-blue-700 border-white"
-                    } ${
-                      inputRef?.current?.value?.length > 0
-                        ? "bg-green-500"
-                        : "bg-white"
-                    } w-[250px] h-[80px] `}
+                    } bg-white w-[250px] h-[102px] `}
                     onDragEnter={handleDragEnter}
                     onDragOver={(e) => e.preventDefault()}
                     onDragLeave={handleDragLeave}
@@ -153,15 +154,34 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
                         accept=".zip"
                         className="opacity-0 w-[250px] h-[80px] absolute cursor-pointer"
                         onChange={(e) => handleFileChange(e)}
-                        ref={inputRef}
                       />
                     </FormControl>
                     <FormMessage />
                     <FormLabel
                       htmlFor="zip-upload"
-                      className="cursor-pointer justify-center mt-8 flex text-blue-700 font-semibold"
+                      className="cursor-pointer h-full place-items-center justify-center flex text-blue-700 font-bold"
                     >
-                      Drag and drop or select
+                      {fileName ? (
+                        <div className="flex-col flex items-center gap-2">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="green"
+                            className="size-10"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                            />
+                          </svg>
+                          <p className="text-blue-700">Files Selected</p>
+                        </div>
+                      ) : (
+                        "Drag and drop or select"
+                      )}
                     </FormLabel>
                   </div>
                 </FormItem>
@@ -194,14 +214,15 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
           />
           <button
             type="submit"
-            className="bg-slate-200 text-xl hover:bg-blue-700 hover:text-white text-blue-700 w-fit justify-self-center rounded-lg p-2 font-semibold font-Switzer tracking-wide h-fit ml-4 self-end px-3"
+            className="bg-slate-200 text-xl disabled:cursor-not-allowed hover:border-white hover:border-2 hover:bg-blue-700 hover:text-white text-blue-700 w-fit justify-self-center rounded-lg p-2 font-semibold font-Switzer tracking-wide h-fit ml-2 self-end px-3"
+            disabled={begun}
           >
             submit
           </button>
           <p className="text-red-500 z-20  ">{status}</p>
         </form>
       </Form>
-      {begun && <ProgressBar />}
+      {begun ? <ProgressBar begun={begun} /> : null}
     </div>
   );
 };

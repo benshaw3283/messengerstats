@@ -1,19 +1,38 @@
 import React, { useEffect, useState } from "react";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-const ProgressBar = () => {
+interface Props {
+  begun: boolean;
+}
+
+const ProgressBar: React.FC<Props> = ({ begun }) => {
   const [progress, setProgress] = useState<number>(0);
   const [completed, setCompleted] = useState<boolean>(false);
   const [fakeProgress, setFakeProgress] = useState<boolean>(true);
+  const [isOpen, setIsOpen] = useState<boolean>(begun);
+
+  // Example: Automatically open the dialog when the component mounts
+  React.useEffect(() => {
+    setIsOpen(true);
+  }, []);
 
   useEffect(() => {
     if (completed) return;
 
-    // Fake progress phase
-
     const fakeProgressInterval = setInterval(() => {
       setProgress((prev) => {
-        if (prev < 5) {
+        if (prev < 40) {
           return prev + 1;
         } else {
           clearInterval(fakeProgressInterval);
@@ -21,22 +40,22 @@ const ProgressBar = () => {
           return prev;
         }
       });
-    }, 1000);
+    }, 3000);
 
     const eventSource = new EventSource("http://localhost:3001/progress");
 
     eventSource.onmessage = (event) => {
       if (fakeProgress) return;
-      console.log("Received event:", event.data); // Check the received event data
+      console.log("Received event:", event.data);
       try {
         const data = JSON.parse(event.data);
         console.log("Parsed data:", data);
         console.log("data", data);
-        setProgress(data.progress); // Update progress state
+        setProgress(40 + data.progress * 0.6);
         console.log("Progress state updated to:", data.progress);
         if (data.progress >= 100) {
-          setCompleted(true); // Mark as completed when progress reaches 100%
-          eventSource.close(); // Close EventSource when done
+          setCompleted(true);
+          eventSource.close();
         }
       } catch (error) {
         console.error("Failed to parse progress update:", error);
@@ -53,10 +72,28 @@ const ProgressBar = () => {
   }, [completed, fakeProgress]);
 
   return (
-    <div >
-      <Progress value={progress} />
-      <p>{progress}%</p>
-    </div>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogContent className="bg-slate-950 text-white">
+        <DialogHeader className="flex justify-center">
+          <DialogTitle className="font-Switzer text-xl font-bold tracking-wide text-blue-700">
+            File extraction in progress{" "}
+          </DialogTitle>
+          <DialogDescription className="flex flex-row">
+            Estimated time:{" "}
+            <span className="font-semibold flex pl-1">30-60 seconds</span>
+          </DialogDescription>
+        </DialogHeader>
+
+        <Progress value={progress} className="h-6" />
+        <p
+          className={`${
+            progress > 50 ? "text-white" : "text-slate-600"
+          } absolute self-center justify-self-center translate-y-9 font-bold text-lg`}
+        >
+          {progress}%
+        </p>
+      </DialogContent>
+    </Dialog>
   );
 };
 
