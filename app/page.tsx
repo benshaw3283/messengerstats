@@ -80,7 +80,7 @@ export default function Home() {
 
         <div className=" flex flex-col gap-4 pl-10">
           <div className="h-[200px] w-[600px] flex  rounded-lg rounded-t-none rounded-br-none flex-col border-2 border-r-0 border-t-0  border-blue-700">
-            <div className="bg-blue-700 rounded-tl-none w-full h-14 rounded-t-lg items-center flex pl-4">
+            <div className="bg-blue-700 rounded-tl-none w-full h-14 rounded-t-lg items-center flex pl-2">
               <h2 className="text-white font-Switzer font-semibold text-3xl tracking-wider">
                 Request Files from Facebook
               </h2>
@@ -103,7 +103,7 @@ export default function Home() {
             </div>
           </div>
           <div className="h-[300px] w-[600px] flex  rounded-lg rounded-t-none rounded-br-none flex-col border-2 border-r-0 border-t-0  border-blue-700">
-            <div className="bg-blue-700 rounded-tl-none w-full h-14 rounded-t-lg items-center flex pl-4">
+            <div className="bg-blue-700 rounded-tl-none w-full h-14 rounded-t-lg items-center flex pl-2">
               <h2 className="text-white font-Switzer font-semibold text-3xl tracking-wider">
                 Choose Files
               </h2>

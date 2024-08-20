@@ -14,8 +14,6 @@ let progressClient = null;
 app.post("/upload", upload.single("file"), async (req, res) => {
   const zipPath = req.file.path;
   const outputDir = path.join(__dirname, "uploads");
-
-  const tempUploadDir = path.join(__dirname, "uploads/tmp");
   const convoName = req.body.convoName;
 
   let extractedFilesCount = 0;
@@ -30,11 +28,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
       fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    // Create a read stream and process the ZIP file
-    const fileStream = fs.createReadStream(zipPath);
-    const extractStream = unzipper.Parse();
-    const extractedFiles = [];
-
+    // First, count the total number of JSON files
     const countStream = fs.createReadStream(zipPath).pipe(unzipper.Parse());
     countStream.on("entry", function (entry) {
       const fileName = entry.path;
@@ -55,47 +49,71 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
     console.log("Total JSON files to extract:", totalJsonFiles);
 
-    fileStream.pipe(extractStream);
+    // Now extract files and folders
+    const extractStream = fs.createReadStream(zipPath).pipe(unzipper.Parse());
 
     extractStream.on("entry", function (entry) {
       const fileName = entry.path;
       const isJson = fileName.endsWith(".json");
+      const isPhotoFolder = fileName.includes("photos/");
+      const isAudioFolder = fileName.includes("audio/");
+      const isVideoFolder = fileName.includes("videos/");
 
       if (
-        fileName.includes(
-          `your_facebook_activity/messages/inbox/${convoName}`
-        ) &&
-        isJson
+        fileName.includes(`your_facebook_activity/messages/inbox/${convoName}`)
       ) {
-        console.log("Found matching JSON file:", fileName);
-        const outputPath = path.join(outputDir, path.basename(fileName));
-        console.log("Writing to:", outputPath);
-        const outputStream = fs.createWriteStream(outputPath);
+        const fullOutputPath = path.join(outputDir, path.basename(fileName));
 
-        entry.pipe(outputStream).on("finish", () => {
-          console.log("Piping finished for:", fileName);
-        });
+        const outputDirPath = path.dirname(fullOutputPath);
 
-        outputStream.on("error", (err) => {
-          console.error("Stream error:", err);
-        });
+        if (!fs.existsSync(outputDirPath)) {
+          fs.mkdirSync(outputDirPath, { recursive: true });
+        }
 
-        // Track the size of extracted data
-        outputStream.on("close", () => {
-          extractedFilesCount++;
-          const progress =
-            Math.round((extractedFilesCount / totalJsonFiles) * 100 * 100) /
-            100;
-
-          console.log("Sending progress update:", progress);
-          console.log("progressClient should be on - under progress update");
-          if (progressClient) {
-            progressClient?.write(`data: ${JSON.stringify({ progress })}\n\n`);
-            progressClient?.flushHeaders();
-          } else {
-            console.log("progressClient is null, cannot send progress update");
+        if (
+          entry.type === "Directory" &&
+          !fileName.includes(
+            `your_facebook_activity/messages/inbox/${convoName}/files/`
+          ) &&
+          !fileName.includes(
+            `your_facebook_activity/messages/inbox/${convoName}/gifs/`
+          )
+        ) {
+          // Handle folder entries
+          console.log("Creating directory:", fullOutputPath);
+          if (!fs.existsSync(fullOutputPath)) {
+            fs.mkdirSync(fullOutputPath);
           }
-        });
+          entry.autodrain(); // Just create the directory, no need to pipe
+        } else if (isJson || isPhotoFolder || isAudioFolder || isVideoFolder) {
+          // Handle file entries (JSON files, images, audio, video, etc.)
+          console.log("Extracting file:", fullOutputPath);
+          const outputStream = fs.createWriteStream(fullOutputPath);
+          entry.pipe(outputStream).on("finish", () => {
+            console.log("Extraction finished for:", fileName);
+          });
+
+          outputStream.on("error", (err) => {
+            console.error("Stream error:", err);
+          });
+
+          outputStream.on("close", () => {
+            if (isJson) extractedFilesCount++;
+            const progress =
+              Math.round((extractedFilesCount / totalJsonFiles) * 100 * 100) /
+              100;
+
+            console.log("Sending progress update:", progress);
+            if (progressClient) {
+              progressClient?.write(
+                `data: ${JSON.stringify({ progress })}\n\n`
+              );
+              progressClient?.flushHeaders();
+            }
+          });
+        } else {
+          entry.autodrain(); // Skip unwanted files and folders
+        }
       } else {
         entry.autodrain(); // Discard other entries
       }
@@ -103,26 +121,23 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
     extractStream.on("close", async () => {
       try {
-        // Delay deletion of the ZIP file until processing is complete
+        // Delete the ZIP file after extraction
         await fs.promises.unlink(zipPath);
 
-        // Delete all files in the uploads/tmp directory
-        setTimeout(() => {
-          fs.readdir(tempUploadDir, (err, files) => {
-            if (err) {
-              console.error("Error reading temporary directory:", err.message);
-              return;
-            }
-
-            for (const file of files) {
-              fs.unlink(path.join(tempUploadDir, file), (err) => {
-                if (err) {
-                  console.error("Error deleting temporary file:", err.message);
-                }
-              });
-            }
-          });
-        }, 300);
+        // Optionally, clean up the temporary upload directory
+        fs.readdir(tempUploadDir, (err, files) => {
+          if (err) {
+            console.error("Error reading temporary directory:", err.message);
+            return;
+          }
+          for (const file of files) {
+            fs.unlink(path.join(tempUploadDir, file), (err) => {
+              if (err) {
+                console.error("Error deleting temporary file:", err.message);
+              }
+            });
+          }
+        });
 
         // Close the SSE connection
         if (progressClient) {

@@ -219,7 +219,6 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
           >
             submit
           </button>
-          <p className="text-red-500 z-20  ">{status}</p>
         </form>
       </Form>
       {begun ? <ProgressBar begun={begun} /> : null}
