@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 
 interface ZipFileDropzoneProps {
-  onFilesUploaded: (files: any[]) => void; // Add this prop
+  onFilesUploaded: (files: any[]) => void;
 }
 
 const formSchema = z.object({

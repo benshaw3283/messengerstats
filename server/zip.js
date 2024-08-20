@@ -14,13 +14,12 @@ let progressClient = null;
 app.post("/upload", upload.single("file"), async (req, res) => {
   const zipPath = req.file.path;
   const outputDir = path.join(__dirname, "uploads");
+  const tempUploadDir = path.join(__dirname, "uploads/tmp");
+
   const convoName = req.body.convoName;
 
   let extractedFilesCount = 0;
   let totalJsonFiles = 0;
-
-  console.log("zipPath:", zipPath);
-  console.log("outputDir:", outputDir);
 
   try {
     // Ensure the output directory exists
@@ -47,8 +46,6 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
     await new Promise((resolve) => countStream.on("close", resolve));
 
-    console.log("Total JSON files to extract:", totalJsonFiles);
-
     // Now extract files and folders
     const extractStream = fs.createReadStream(zipPath).pipe(unzipper.Parse());
 
@@ -62,36 +59,37 @@ app.post("/upload", upload.single("file"), async (req, res) => {
       if (
         fileName.includes(`your_facebook_activity/messages/inbox/${convoName}`)
       ) {
-        const fullOutputPath = path.join(outputDir, path.basename(fileName));
+        let outputPath;
 
-        const outputDirPath = path.dirname(fullOutputPath);
+        // Determine the correct output path for different file types
+        if (isJson) {
+          outputPath = path.join(outputDir, path.basename(fileName));
+        } else if (isPhotoFolder) {
+          outputPath = path.join(outputDir, "photos", path.basename(fileName));
+        } else if (isAudioFolder) {
+          outputPath = path.join(outputDir, "audio", path.basename(fileName));
+        } else if (isVideoFolder) {
+          outputPath = path.join(outputDir, "videos", path.basename(fileName));
+        } else {
+          entry.autodrain();
+          return;
+        }
+
+        const outputDirPath = path.dirname(outputPath);
 
         if (!fs.existsSync(outputDirPath)) {
           fs.mkdirSync(outputDirPath, { recursive: true });
         }
 
-        if (
-          entry.type === "Directory" &&
-          !fileName.includes(
-            `your_facebook_activity/messages/inbox/${convoName}/files/`
-          ) &&
-          !fileName.includes(
-            `your_facebook_activity/messages/inbox/${convoName}/gifs/`
-          )
-        ) {
-          // Handle folder entries
-          console.log("Creating directory:", fullOutputPath);
-          if (!fs.existsSync(fullOutputPath)) {
-            fs.mkdirSync(fullOutputPath);
+        if (entry.type === "Directory") {
+          if (!fs.existsSync(outputPath)) {
+            fs.mkdirSync(outputPath);
           }
           entry.autodrain(); // Just create the directory, no need to pipe
-        } else if (isJson || isPhotoFolder || isAudioFolder || isVideoFolder) {
-          // Handle file entries (JSON files, images, audio, video, etc.)
-          console.log("Extracting file:", fullOutputPath);
-          const outputStream = fs.createWriteStream(fullOutputPath);
-          entry.pipe(outputStream).on("finish", () => {
-            console.log("Extraction finished for:", fileName);
-          });
+        } else {
+          console.log("Extracting file:", outputPath);
+          const outputStream = fs.createWriteStream(outputPath);
+          entry.pipe(outputStream).on("finish", () => {});
 
           outputStream.on("error", (err) => {
             console.error("Stream error:", err);
@@ -105,14 +103,10 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
             console.log("Sending progress update:", progress);
             if (progressClient) {
-              progressClient?.write(
-                `data: ${JSON.stringify({ progress })}\n\n`
-              );
-              progressClient?.flushHeaders();
+              progressClient.write(`data: ${JSON.stringify({ progress })}\n\n`);
+              progressClient.flushHeaders();
             }
           });
-        } else {
-          entry.autodrain(); // Skip unwanted files and folders
         }
       } else {
         entry.autodrain(); // Discard other entries
@@ -148,19 +142,8 @@ app.post("/upload", upload.single("file"), async (req, res) => {
           progressClient = null;
         }
 
-        const jsonFiles = await Promise.all(
-          extractedFiles.map(async (filePath) => {
-            const content = await fs.promises.readFile(filePath, "utf-8");
-            return {
-              fileName: path.basename(filePath),
-              content: JSON.parse(content),
-            };
-          })
-        );
-
         res.status(200).json({
           message: "Files extracted successfully.",
-          files: jsonFiles,
         });
       } catch (err) {
         res
