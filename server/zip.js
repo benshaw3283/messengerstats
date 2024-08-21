@@ -8,7 +8,8 @@ const cors = require("cors");
 const app = express();
 const upload = multer({ dest: path.join(__dirname, "uploads/tmp") }); // Use a temporary folder
 
-app.use(cors());
+app.use(cors({ origin: "http://localhost:3000" }));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 let progressClient = null;
 
 app.post("/upload", upload.single("file"), async (req, res) => {

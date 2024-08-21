@@ -5,7 +5,7 @@ import React from "react";
 import Lists from "@/components/Lists";
 
 import Request from "@/components/Request";
-
+import { useQuery } from "@tanstack/react-query";
 interface Reaction {
   reaction: string;
   actor: string;
@@ -65,9 +65,12 @@ export default function Home() {
   };
 
   React.useEffect(() => {
-    spreadMessages();
+    if (selectedFiles.length > 0) {
+      spreadMessages();
 
-    console.log("selectedFiles", selectedFiles);
+      console.log("selectedFiles", selectedFiles);
+    }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFiles]);
 
@@ -85,8 +88,8 @@ export default function Home() {
                 Request Files from Facebook
               </h2>
             </div>
-            <div className="p-2 pt-4 pb-0">
-              <p>Facebook takes up to a day for your files to be ready</p>
+            <div className="p-2 pt-4 pb-0 text-slate-500">
+              <p>Facebook takes up to a day for your files to be ready.</p>
               <p>{`You will receive a notification when they're ready to be `}</p>
               <p>
                 downloaded{" "}
@@ -95,6 +98,12 @@ export default function Home() {
                   className="font-semibold text-blue-700 underline cursor-pointer hover:text-white"
                 >
                   here
+                </a>
+              </p>
+              <p className="absolute pt-10">
+                Or request manually by following the{" "}
+                <a className="text-blue-700 underline cursor-pointer hover:text-white font-semibold ">
+                  Tutorial
                 </a>
               </p>
             </div>
@@ -108,12 +117,13 @@ export default function Home() {
                 Choose Files
               </h2>
             </div>
-            <div className="p-2 pt-4 pb-0">
+            <div className="p-2 pt-4 pb-0 text-slate-500">
               <p>
                 Drop the zip file in the area below and enter the name of the
                 conversation you want to see the stats of.
               </p>
             </div>
+            <p className="absolute pt-[158px] pl-2 text-slate-500 text-sm">{`* If your system's storage is low the process may fail.`}</p>
             <div className="flex mt-20 rounded-tr-lg p-2 bg-blue-700 ">
               <ZipFileDropzone onFilesUploaded={handleFilesUploaded} />
             </div>

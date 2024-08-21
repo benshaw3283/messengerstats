@@ -20,12 +20,18 @@ interface Participant {
   name: string;
 }
 
+interface Video {
+  creation_timestamp: number | any;
+  uri: string;
+}
+
 interface Message {
   sender_name: string;
   timestamp_ms: number;
   content: string;
   reactions: Array<Reaction>;
   is_geoblocked_for_viewer: boolean;
+  videos?: Array<Video>;
 }
 
 interface Content {
@@ -198,6 +204,30 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages }) => {
     }
     return withComma;
   };
+
+  const findMostReactedMessage = (messages: Message[]) => {
+    let mostReactedMessage: Message | any;
+    let maxReactions = 0;
+
+    messages?.forEach((message) => {
+      const reactionCount = message.reactions?.length || 0;
+      if (reactionCount > maxReactions) {
+        mostReactedMessage = message;
+        maxReactions = reactionCount;
+      }
+    });
+
+    return mostReactedMessage;
+  };
+
+  const mostReactedMessage = findMostReactedMessage(fileMessages);
+  const uri = mostReactedMessage?.videos[0]?.uri;
+
+  const lastIndex = uri?.lastIndexOf("videos/");
+  const videoPath = `http://localhost:3001/uploads/${uri?.slice(lastIndex)}`;
+
+  console.log("most reacted message", mostReactedMessage);
+  console.log(videoPath);
 
   return (
     <div className="pt-10">
@@ -454,7 +484,22 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages }) => {
               </div>
             </div>
           </TabsContent>
-          <TabsContent value="most">Change your password here.</TabsContent>
+          <TabsContent value="most">
+            {uri ? (
+              <video
+                width="320"
+                height="240"
+                controls
+                preload="none"
+                crossOrigin="anonymous"
+              >
+                <source src={videoPath} type="video/mp4" />
+                Videos not supported
+              </video>
+            ) : (
+              <div></div>
+            )}
+          </TabsContent>
         </Tabs>
       </div>
     </div>
