@@ -93,7 +93,8 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
     try {
       const formData = new FormData();
       formData.append("file", data.file);
-      formData.append("convoName", data.convoName);
+      const convoFormatted = data.convoName.replace(/\s+/g, "").toLowerCase();
+      formData.append("convoName", convoFormatted);
       const response = await fetch("http://localhost:3001/upload", {
         method: "POST",
         body: formData,

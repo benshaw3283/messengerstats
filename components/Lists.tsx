@@ -8,8 +8,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
+import Image from "next/image";
 import { useToast } from "@/components/ui/use-toast";
+
+interface LoaderProps {
+  src: string;
+}
+
+const imageLoader = ({ src }: LoaderProps): string => {
+  const uri = `http://localhost:3001/${src}`;
+  console.log(uri);
+  return uri;
+};
 
 interface Reaction {
   reaction: string;
@@ -25,13 +35,25 @@ interface Video {
   uri: string;
 }
 
+interface Photo {
+  creation_timestamp: number | any;
+  uri: string;
+}
+
+interface Audio {
+  creation_timestamp: number | any;
+  uri: string;
+}
+
 interface Message {
   sender_name: string;
   timestamp_ms: number;
-  content: string;
+  content?: string;
   reactions: Array<Reaction>;
   is_geoblocked_for_viewer: boolean;
-  videos?: Array<Video>;
+  videos?: Array<Video> | any;
+  photos?: Array<Photo> | any;
+  audio_files?: Array<Audio> | any;
 }
 
 interface Content {
@@ -205,29 +227,60 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages }) => {
     return withComma;
   };
 
-  const findMostReactedMessage = (messages: Message[]) => {
-    let mostReactedMessage: Message | any;
-    let maxReactions = 0;
-
-    messages?.forEach((message) => {
+  const findTopThreeMostReactedPerType = (
+    messages: Message[],
+    type: string
+  ) => {
+    // Filter messages based on the type and check for content
+    const filteredMessages = messages.filter((message) => {
       const reactionCount = message.reactions?.length || 0;
-      if (reactionCount > maxReactions) {
-        mostReactedMessage = message;
-        maxReactions = reactionCount;
+      switch (type) {
+        case "text":
+          return message.content && reactionCount > 0;
+        case "video":
+          return (
+            message.videos && message.videos.length > 0 && reactionCount > 0
+          );
+        case "photo":
+          return (
+            message.photos && message.photos.length > 0 && reactionCount > 0
+          );
+        case "audio":
+          return (
+            message.audio_files &&
+            message.audio_files.length > 0 &&
+            reactionCount > 0
+          );
+        default:
+          return false;
       }
     });
 
-    return mostReactedMessage;
+    // Sort filtered messages by the number of reactions in descending order
+    const sortedMessages = filteredMessages.sort(
+      (a, b) => (b.reactions?.length || 0) - (a.reactions?.length || 0)
+    );
+
+    // Return the top 3 most reacted messages
+    return sortedMessages.slice(0, 3);
   };
 
-  const mostReactedMessage = findMostReactedMessage(fileMessages);
-  const uri = mostReactedMessage?.videos[0]?.uri;
-
-  const lastIndex = uri?.lastIndexOf("videos/");
-  const videoPath = `http://localhost:3001/uploads/${uri?.slice(lastIndex)}`;
-
-  console.log("most reacted message", mostReactedMessage);
-  console.log(videoPath);
+  const mostReactedMessage = findTopThreeMostReactedPerType(
+    fileMessages,
+    "text"
+  );
+  const mostReactedPhoto = findTopThreeMostReactedPerType(
+    fileMessages,
+    "photo"
+  );
+  const mostReactedVideo = findTopThreeMostReactedPerType(
+    fileMessages,
+    "video"
+  );
+  const mostReactedAudio = findTopThreeMostReactedPerType(
+    fileMessages,
+    "audio"
+  );
 
   return (
     <div className="pt-10">
@@ -485,20 +538,71 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages }) => {
             </div>
           </TabsContent>
           <TabsContent value="most">
-            {uri ? (
-              <video
-                width="320"
-                height="240"
-                controls
-                preload="none"
-                crossOrigin="anonymous"
-              >
-                <source src={videoPath} type="video/mp4" />
-                Videos not supported
-              </video>
-            ) : (
-              <div></div>
-            )}
+            <div id="message"></div>
+            <div id="photo">
+              {mostReactedPhoto?.map((photo, index) => (
+                <div key={index}>
+                  <div>
+                    <p>
+                      {index + 1 === 1 && "1st most reacted photo"}
+                      {index + 1 === 2 && "2nd most reacted photo"}
+                      {index + 1 === 3 && "3rd most reacted photo"}
+                    </p>
+                  </div>
+                  <Image
+                    loader={imageLoader}
+                    src={`uploads/${photo.photos[0].uri.slice(
+                      photo.photos[0].uri.lastIndexOf("photos/")
+                    )} `}
+                    alt="most reacted photo"
+                    width={500}
+                    height={500}
+                  />
+                </div>
+              ))}
+            </div>
+            <div id="video">
+              {mostReactedVideo?.map((video, index) => (
+                <div key={index}>
+                  <div>
+                    <p>
+                      {index + 1 === 1 && "1st most reacted video"}
+                      {index + 1 === 2 && "2nd most reacted video"}
+                      {index + 1 === 3 && "3rd most reacted video"}
+                    </p>
+                  </div>
+                  <video
+                    width="320"
+                    height="240"
+                    controls
+                    preload="auto"
+                    crossOrigin="anonymous"
+                    playsInline
+                  >
+                    <source
+                      src={`http://localhost:3001/uploads/${video.videos[0].uri.slice(
+                        video.videos[0].uri.lastIndexOf("videos/")
+                      )}`}
+                      type="video/mp4"
+                    />
+                    Videos not supported
+                  </video>
+                </div>
+              ))}
+            </div>
+
+            <div id="audio">
+              {mostReactedAudio?.map((audio, index) => (
+                <div key={index}>
+                  <audio
+                    src={`http://localhost:3001/uploads/${audio.audio_files[0].uri.slice(
+                      audio.audio_files[0].uri.lastIndexOf("audio/")
+                    )}`}
+                    controls
+                  ></audio>
+                </div>
+              ))}
+            </div>
           </TabsContent>
         </Tabs>
       </div>
