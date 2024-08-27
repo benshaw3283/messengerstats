@@ -3,9 +3,9 @@
 import ZipFileDropzone from "@/components/DragAndDrop";
 import React from "react";
 import Lists from "@/components/Lists";
-
+import Demo from "@/components/Demo";
 import Request from "@/components/Request";
-import { useQuery } from "@tanstack/react-query";
+
 interface Reaction {
   reaction: string;
   actor: string;
@@ -81,52 +81,70 @@ export default function Home() {
           Messenger Stats
         </h1>
 
-        <div className=" flex flex-col gap-4 pl-10">
-          <div className="h-[200px] w-[600px] flex  rounded-lg rounded-t-none rounded-br-none flex-col border-2 border-r-0 border-t-0  border-blue-700">
-            <div className="bg-blue-700 rounded-tl-none w-full h-14 rounded-t-lg items-center flex pl-2">
-              <h2 className="text-white font-Switzer font-semibold text-3xl tracking-wider">
-                Request Files from Facebook
-              </h2>
+        <div className="flex flex-row w-full gap-[500px]">
+          <div className=" flex flex-col gap-4 pl-10">
+            <div className="h-[200px] w-[600px] flex  rounded-lg rounded-t-none rounded-br-none flex-col border-2 border-r-0 border-t-0  border-blue-700">
+              <div className="bg-blue-700 rounded-tl-none w-full h-14 rounded-t-lg items-center flex pl-2">
+                <h2 className="text-white font-Switzer font-semibold text-3xl tracking-wider">
+                  Request Files from Facebook
+                </h2>
+              </div>
+              <div className="p-2 pt-2 text-slate-500">
+                <p>
+                  Facebook takes up to{" "}
+                  <strong className="text-white">1 day</strong> for your files
+                  to be ready.
+                </p>
+                <p>{`You will receive a notification when they're ready to be `}</p>
+                <p>
+                  downloaded{" "}
+                  <a
+                    href="https://accountscenter.facebook.com/info_and_permissions/dyi/"
+                    className="font-semibold text-blue-700 underline cursor-pointer hover:text-white"
+                  >
+                    here
+                  </a>
+                  <span className="text-sm pl-2">{`(Download the 3rd available file)`}</span>
+                </p>
+                <p className="absolute pt-14 text-sm">
+                  Or request manually by following the{" "}
+                  <a
+                    href="/tutorial"
+                    className="text-blue-700 underline cursor-pointer hover:text-white font-semibold "
+                  >
+                    Tutorial
+                  </a>
+                </p>
+              </div>
+              <div className="h-full justify-end flex place-items-end p-2">
+                <Request />
+              </div>
             </div>
-            <div className="p-2 pt-4 pb-0 text-slate-500">
-              <p>Facebook takes up to a day for your files to be ready.</p>
-              <p>{`You will receive a notification when they're ready to be `}</p>
-              <p>
-                downloaded{" "}
-                <a
-                  href="https://accountscenter.facebook.com/info_and_permissions/dyi/"
-                  className="font-semibold text-blue-700 underline cursor-pointer hover:text-white"
-                >
-                  here
-                </a>
-              </p>
-              <p className="absolute pt-10">
-                Or request manually by following the{" "}
-                <a className="text-blue-700 underline cursor-pointer hover:text-white font-semibold ">
-                  Tutorial
-                </a>
-              </p>
-            </div>
-            <div className="h-full justify-end flex place-items-end p-2">
-              <Request />
+            <div className="h-[300px] w-[600px] flex  rounded-lg rounded-t-none rounded-br-none flex-col border-2 border-r-0 border-t-0  border-blue-700">
+              <div className="bg-blue-700 rounded-tl-none w-full h-14 rounded-t-lg items-center flex pl-2">
+                <h2 className="text-white font-Switzer font-semibold text-3xl tracking-wider">
+                  Choose Files
+                </h2>
+              </div>
+              <div className="p-2 pt-4 pb-0 text-slate-500">
+                <p>
+                  Drop the zip file in the area below and enter the name of the
+                  conversation you want to see the stats of.
+                </p>
+              </div>
+
+              <div className="flex mt-20 rounded-tr-lg p-2 bg-blue-700 ">
+                <ZipFileDropzone onFilesUploaded={handleFilesUploaded} />
+              </div>
             </div>
           </div>
-          <div className="h-[300px] w-[600px] flex  rounded-lg rounded-t-none rounded-br-none flex-col border-2 border-r-0 border-t-0  border-blue-700">
-            <div className="bg-blue-700 rounded-tl-none w-full h-14 rounded-t-lg items-center flex pl-2">
-              <h2 className="text-white font-Switzer font-semibold text-3xl tracking-wider">
-                Choose Files
-              </h2>
+          <div className="-translate-y-[72px] scale-75 shadow-inner shadow-blue-700 rounded-lg p-4 px-10">
+            <div className="">
+              <h1 className="justify-center flex font-Switzer text-3xl font-semibold tracking-wide pb-4">
+                Demo
+              </h1>
             </div>
-            <div className="p-2 pt-4 pb-0 text-slate-500">
-              <p>
-                Drop the zip file in the area below and enter the name of the
-                conversation you want to see the stats of.
-              </p>
-            </div>
-            <p className="absolute pt-[158px] pl-2 text-slate-500 text-sm">{`* If your system's storage is low the process may fail.`}</p>
-            <div className="flex mt-20 rounded-tr-lg p-2 bg-blue-700 ">
-              <ZipFileDropzone onFilesUploaded={handleFilesUploaded} />
-            </div>
+            <Demo />
           </div>
         </div>
       </div>

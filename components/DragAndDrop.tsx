@@ -141,9 +141,9 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
               return (
                 <FormItem>
                   <div
-                    className={`border-2 border-dashed border-blue-700 cursor-pointer rounded-lg  ${
-                      dragging && "bg-blue-700 border-white"
-                    } bg-white w-[250px] h-[102px] `}
+                    className={`border-2 border-dashed  border-white cursor-pointer rounded-lg  ${
+                      dragging && "border-2 border-double"
+                    } bg-blue-700 w-[250px] h-[102px] `}
                     onDragEnter={handleDragEnter}
                     onDragOver={(e) => e.preventDefault()}
                     onDragLeave={handleDragLeave}
@@ -160,7 +160,7 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
                     <FormMessage />
                     <FormLabel
                       htmlFor="zip-upload"
-                      className="cursor-pointer h-full place-items-center justify-center flex text-blue-700 font-bold"
+                      className="cursor-pointer h-full place-items-center justify-center flex text-white font-bold"
                     >
                       {fileName ? (
                         <div className="flex-col flex items-center gap-2">
@@ -169,7 +169,7 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
                             fill="none"
                             viewBox="0 0 24 24"
                             strokeWidth={1.5}
-                            stroke="green"
+                            stroke="white"
                             className="size-10"
                           >
                             <path
@@ -178,7 +178,7 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
                               d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
                             />
                           </svg>
-                          <p className="text-blue-700">Files Selected</p>
+                          <p className="text-white">Files Selected</p>
                         </div>
                       ) : (
                         "Drag and drop or select"

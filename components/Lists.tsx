@@ -333,7 +333,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages }) => {
               <div className="bg-neutral-100 p-3 rounded-lg flex order-1 h-fit w-fit self-center lg:self-start border-2 border-blue-700">
                 <div
                   ref={div1Ref}
-                  className="pt-5 bg-blue-700 w-[500px] rounded-lg p-10 h-fit z-10 flex flex-col "
+                  className="pt-5 bg-blue-700 w-[500px] rounded-lg p-10 pb-2 h-fit z-10 flex flex-col "
                 >
                   <h2 className="font-semibold text-2xl pb-1 border-b-2 flex justify-center">
                     Messages Sent
@@ -392,7 +392,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages }) => {
                 ref={div3Ref}
                 className="bg-neutral-100 p-3 rounded-lg border-2 border-blue-700"
               >
-                <div className="pt-5 bg-blue-700 w-[500px] rounded-lg p-10  z-10 ">
+                <div className="pt-5 bg-blue-700 w-[500px] rounded-lg p-10 pb-2 z-10 ">
                   <div className="flex flex-row border-b-2 justify-center ">
                     <h2 className="font-semibold lg:text-2xl text-base pb-1 flex  pr-1">
                       Messages with

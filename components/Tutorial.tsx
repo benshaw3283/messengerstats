@@ -3,7 +3,7 @@ import Image from "next/image";
 
 const Tutorial = () => {
   return (
-    <div className="pt-10 flex  items-center flex-col">
+    <div className="pt-10 flex  items-center flex-col bg-slate-950 text-white">
       <div className="border border-slate-300 w-full mb-6"></div>
       <div className="bg-white p-2 w-fit items-center rounded-lg flex border-2 border-blue-700">
         <div className=" bg-blue-700 rounded-lg p-3 h-fit z-10">
