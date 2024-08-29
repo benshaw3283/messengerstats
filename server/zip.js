@@ -1,33 +1,42 @@
 const express = require("express");
 const multer = require("multer");
 const unzipper = require("unzipper");
-const fs = require("fs");
-const path = require("path");
 const cors = require("cors");
+const { Storage } = require("@google-cloud/storage");
+const path = require("path");
 
 const app = express();
-const upload = multer({ dest: path.join(__dirname, "uploads/tmp") }); // Use a temporary folder
+const upload = multer({ dest: path.join(__dirname, "uploads/tmp") }); // Temporary local folder for uploads
+const dotenv = require("dotenv");
+
+// Load environment variables from .env file
+dotenv.config();
+// Google Cloud Storage setup
+const bucketName = "messenger_stats";
+
+const storage = new Storage({
+  keyFilename: process.env.GOOGLE_APPLICATION,
+});
+const bucket = storage.bucket(bucketName);
 
 app.use(cors({ origin: "http://localhost:3000" }));
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 let progressClient = null;
 
 app.post("/upload", upload.single("file"), async (req, res) => {
   const zipPath = req.file.path;
-  const outputDir = path.join(__dirname, "uploads");
-  const tempUploadDir = path.join(__dirname, "uploads/tmp");
+
+  // Generate a unique folder name using timestamp and random string
+  const uniqueFolderName = `${Date.now()}_${Math.random()
+    .toString(36)
+    .substring(2, 15)}`;
+  const userFolder = `uploads/${uniqueFolderName}/`;
 
   const convoName = req.body.convoName;
-
   let extractedFilesCount = 0;
   let totalJsonFiles = 0;
 
   try {
-    // Ensure the output directory exists
-    if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir, { recursive: true });
-    }
-
     // First, count the total number of JSON files
     const countStream = fs.createReadStream(zipPath).pipe(unzipper.Parse());
     countStream.on("entry", function (entry) {
@@ -47,10 +56,10 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
     await new Promise((resolve) => countStream.on("close", resolve));
 
-    // Now extract files and folders
+    // Now extract files and upload them to Google Cloud Storage
     const extractStream = fs.createReadStream(zipPath).pipe(unzipper.Parse());
 
-    extractStream.on("entry", function (entry) {
+    extractStream.on("entry", async function (entry) {
       const fileName = entry.path;
       const isJson = fileName.endsWith(".json");
       const isPhotoFolder = fileName.includes("photos/");
@@ -62,41 +71,27 @@ app.post("/upload", upload.single("file"), async (req, res) => {
       ) {
         let outputPath;
 
-        // Determine the correct output path for different file types
+        // Determine the correct output path for different file types in Google Cloud Storage
         if (isJson) {
-          outputPath = path.join(outputDir, path.basename(fileName));
+          outputPath = path.join(userFolder, path.basename(fileName));
         } else if (isPhotoFolder) {
-          outputPath = path.join(outputDir, "photos", path.basename(fileName));
+          outputPath = path.join(userFolder, "photos", path.basename(fileName));
         } else if (isAudioFolder) {
-          outputPath = path.join(outputDir, "audio", path.basename(fileName));
+          outputPath = path.join(userFolder, "audio", path.basename(fileName));
         } else if (isVideoFolder) {
-          outputPath = path.join(outputDir, "videos", path.basename(fileName));
+          outputPath = path.join(userFolder, "videos", path.basename(fileName));
         } else {
           entry.autodrain();
           return;
         }
 
-        const outputDirPath = path.dirname(outputPath);
-
-        if (!fs.existsSync(outputDirPath)) {
-          fs.mkdirSync(outputDirPath, { recursive: true });
-        }
-
         if (entry.type === "Directory") {
-          if (!fs.existsSync(outputPath)) {
-            fs.mkdirSync(outputPath);
-          }
           entry.autodrain(); // Just create the directory, no need to pipe
         } else {
-          console.log("Extracting file:", outputPath);
-          const outputStream = fs.createWriteStream(outputPath);
-          entry.pipe(outputStream).on("finish", () => {});
+          const file = bucket.file(outputPath);
+          const outputStream = file.createWriteStream();
 
-          outputStream.on("error", (err) => {
-            console.error("Stream error:", err);
-          });
-
-          outputStream.on("close", () => {
+          entry.pipe(outputStream).on("finish", () => {
             if (isJson) extractedFilesCount++;
             const progress =
               Math.round((extractedFilesCount / totalJsonFiles) * 100 * 100) /
@@ -108,6 +103,10 @@ app.post("/upload", upload.single("file"), async (req, res) => {
               progressClient.flushHeaders();
             }
           });
+
+          outputStream.on("error", (err) => {
+            console.error("Stream error:", err);
+          });
         }
       } else {
         entry.autodrain(); // Discard other entries
@@ -116,23 +115,8 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
     extractStream.on("close", async () => {
       try {
-        // Delete the ZIP file after extraction
+        // Delete the temporary ZIP file after extraction
         await fs.promises.unlink(zipPath);
-
-        // Optionally, clean up the temporary upload directory
-        fs.readdir(tempUploadDir, (err, files) => {
-          if (err) {
-            console.error("Error reading temporary directory:", err.message);
-            return;
-          }
-          for (const file of files) {
-            fs.unlink(path.join(tempUploadDir, file), (err) => {
-              if (err) {
-                console.error("Error deleting temporary file:", err.message);
-              }
-            });
-          }
-        });
 
         // Close the SSE connection
         if (progressClient) {
@@ -144,7 +128,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
         }
 
         res.status(200).json({
-          message: "Files extracted successfully.",
+          message: "Files extracted and uploaded successfully.",
         });
       } catch (err) {
         res
