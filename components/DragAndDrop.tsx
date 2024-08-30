@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import ProgressBar from "./Progress";
 import { useToast } from "./ui/use-toast";
+import JSZip from "jszip";
 import {
   Form,
   FormControl,
@@ -21,15 +22,16 @@ interface ZipFileDropzoneProps {
 
 const formSchema = z.object({
   convoName: z.string().min(2, { message: "Must be over 2 characters" }),
-  file: z.any(),
-  /*.refine(
+  file: z
+    .any()
+    .refine(
       (file: File) =>
-        file instanceof File && file.type === ("application/x-zip-compressed" || "application/zip"),
+        file.type === "application/x-zip-compressed" ||
+        file.type === "application/zip",
       {
         message: "Please upload a valid ZIP file.",
       }
     ),
-    */
 });
 
 const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
@@ -39,17 +41,6 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
   const [dragging, setDragging] = useState<boolean>(false);
   const [status, setStatus] = useState<string>("");
   const [begun, setBegun] = useState<boolean>(false);
-
-  const fetchFilesFromServer = async () => {
-    try {
-      const response = await fetch("/api/getFiles");
-      const files = await response.json();
-      console.log(files);
-      onFilesUploaded(files.fileObjects);
-    } catch (error) {
-      console.error("Error fetching files:", error);
-    }
-  };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -87,41 +78,107 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
     }
   };
 
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    setBegun(true);
+  const extractJsonFilesFromZip = async (
+    zip: JSZip,
+    convoFormatted: string
+  ): Promise<any[]> => {
+    const jsonFiles: any[] = [];
+
+    // Pattern to match the folder path
+    const folderPattern = new RegExp(
+      `^your_facebook_activity/messages/inbox/${convoFormatted}_\\d+/`
+    );
 
     try {
-      const formData = new FormData();
-      formData.append("file", data.file);
-      const convoFormatted = data.convoName.replace(/\s+/g, "").toLowerCase();
-      formData.append("convoName", convoFormatted);
-      const response = await fetch("http://localhost:3001/upload", {
-        method: "POST",
-        body: formData,
-      });
+      // Iterate over all files in the ZIP archive
+      for (const filename of Object.keys(zip.files)) {
+        const file = zip.files[filename];
+        console.log(file);
 
-      if (response.ok) {
-        const responseData = await response.json();
-        setStatus(responseData.message);
-        toast({
-          title: responseData?.message,
-          variant: "default",
-          className: "border-2 border-white bg-green-600  text-white",
-        });
-        await fetchFilesFromServer();
-        setBegun(false);
-      } else {
-        setStatus("Upload failed.");
-        toast({
-          title: "Upload failed",
-          variant: "destructive",
-        });
-        setBegun(false);
+        // Check if the file is within the target folder
+        if (folderPattern.test(file.name) && file.name.endsWith(".json")) {
+          // Extract and parse JSON files
+          const content = await file.async("text");
+          jsonFiles.push(JSON.parse(content));
+          console.log(jsonFiles);
+        }
       }
-    } catch (error: any) {
-      setStatus("Error: " + error.message);
-      console.log(status);
+    } catch (error) {
+      console.error("Error extracting JSON files:", error);
+      throw new Error("Error processing JSON files from the ZIP archive.");
     }
+
+    return jsonFiles;
+  };
+
+  const MAX_CHUNK_SIZE = 1 * 1024 * 1024 * 1024; // 1GB in bytes
+
+  const splitFileIntoChunks = (file: File) => {
+    const chunks = [];
+    let start = 0;
+
+    while (start < file.size) {
+      const end = Math.min(start + MAX_CHUNK_SIZE, file.size);
+      chunks.push(file.slice(start, end));
+      start = end;
+    }
+
+    return chunks;
+  };
+
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    setBegun(true);
+    try {
+      if (!(data.file instanceof File)) {
+        throw new Error("Invalid file object.");
+      }
+
+      // Split the file into chunks
+      const chunks = splitFileIntoChunks(data.file);
+      console.log(`File split into ${chunks.length} chunks.`);
+
+      chunks.forEach(async (chunk, index) => {
+        console.log(`Processing chunk ${index + 1} of ${chunks.length}`);
+        const zip = new JSZip();
+        const fileContent: any = await readFileAsArrayBuffer(chunk);
+        await zip?.loadAsync(fileContent);
+        console.log(`Chunk ${index + 1} loaded successfully.`);
+
+        const convoFormatted = data.convoName.replace(/\s+/g, "").toLowerCase();
+        const jsonFiles = await extractJsonFilesFromZip(zip, convoFormatted);
+        console.log("JSON files extracted from chunk:", jsonFiles);
+        onFilesUploaded(jsonFiles);
+      });
+      toast({
+        title: "Files processed successfully",
+        variant: "default",
+        className: "border-2 border-white bg-green-600 text-white",
+      });
+    } catch (error) {
+      console.error("Error processing the ZIP file:", error);
+      toast({
+        title: "Error processing file",
+        description: "Error extracting files",
+        variant: "destructive",
+      });
+    } finally {
+      setBegun(false);
+    }
+  };
+
+  const readFileAsArrayBuffer = (blob: Blob) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (reader.result instanceof ArrayBuffer) {
+          resolve(reader.result);
+        } else {
+          reject(new Error("Failed to read file as ArrayBuffer."));
+        }
+      };
+      reader.onerror = () => reject(reader.error);
+      reader.readAsArrayBuffer(blob);
+    });
   };
 
   const fileName = form.getValues("file");
@@ -222,7 +279,7 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
           </button>
         </form>
       </Form>
-      {begun ? <ProgressBar begun={begun} /> : null}
+      {begun ? <p>processing</p> : null}
     </div>
   );
 };
