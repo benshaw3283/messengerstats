@@ -4,43 +4,29 @@ const unzipper = require("unzipper");
 const fs = require("fs");
 const path = require("path");
 const cors = require("cors");
+const timeout = require("connect-timeout");
 const app = express();
+const rimraf = require("rimraf");
 const upload = multer({ dest: path.join(__dirname, "uploads/tmp") });
 
-app.use(cors());
 app.use(cors({ origin: "*" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-let progressClient = null;
 
+app.use(timeout("20m")); // Set timeout to 20 minutes
+app.use((req, res, next) => {
+  if (!req.timedout) next();
+});
 app.post("/upload", upload.single("file"), async (req, res) => {
   const zipPath = req.file.path;
   const outputDir = path.join(__dirname, "uploads");
   const tempUploadDir = path.join(__dirname, "uploads/tmp");
   const convoName = req.body.convoName;
-  let extractedFilesCount = 0;
-  let totalJsonFiles = 0;
-  try {
-    console.log("Counting JSON files...");
-    const countStream = fs.createReadStream(zipPath).pipe(unzipper.Parse());
-    countStream.on("entry", function (entry) {
-      const fileName = entry.path;
-      const isJson = fileName.endsWith(".json");
-      if (
-        fileName.includes(
-          `your_facebook_activity/messages/inbox/${convoName}`
-        ) &&
-        isJson
-      ) {
-        totalJsonFiles++;
-      }
-      entry.autodrain();
-    });
-    await new Promise((resolve) => countStream.on("close", resolve));
-    console.log(`Total JSON files: ${totalJsonFiles}`);
 
+  console.log(`Received ZIP file: ${zipPath}`);
+  try {
     console.log("Starting extraction...");
     const extractStream = fs.createReadStream(zipPath).pipe(unzipper.Parse());
-    extractStream.on("entry", function (entry) {
+    extractStream.on("entry", async function (entry) {
       const fileName = entry.path;
       const isJson = fileName.endsWith(".json");
       const isPhotoFolder = fileName.includes("photos/");
@@ -65,7 +51,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
         }
         const outputDirPath = path.dirname(outputPath);
         if (!fs.existsSync(outputDirPath)) {
-          fs.mkdirSync(outputDirPath, { recursive: true });
+          await fs.promises.mkdir(outputDirPath, { recursive: true });
         }
         if (entry.type === "Directory") {
           if (!fs.existsSync(outputPath)) {
@@ -79,52 +65,33 @@ app.post("/upload", upload.single("file"), async (req, res) => {
           outputStream.on("error", (err) => {
             console.error("Stream error:", err);
           });
-          outputStream.on("close", () => {
-            if (isJson) extractedFilesCount++;
-            const progress =
-              Math.round((extractedFilesCount / totalJsonFiles) * 100 * 100) /
-              100;
-            console.log("Sending progress update:", progress);
-            if (progressClient) {
-              progressClient.write(`data: ${JSON.stringify({ progress })}\n\n`);
-              progressClient.flushHeaders();
-            }
-          });
         }
       } else {
         entry.autodrain();
       }
     });
 
+    const cleanupTempFiles = () => {
+      return new Promise((resolve, reject) => {
+        rimraf(tempUploadDir, (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
+    };
+
     extractStream.on("close", async () => {
       try {
         console.log("Extraction complete. Cleaning up...");
         await fs.promises.unlink(zipPath);
-        fs.readdir(tempUploadDir, (err, files) => {
-          if (err) {
-            console.error("Error reading temporary directory:", err.message);
-            return;
-          }
-          for (const file of files) {
-            fs.unlink(path.join(tempUploadDir, file), (err) => {
-              if (err) {
-                console.error("Error deleting temporary file:", err.message);
-              }
-            });
-          }
-        });
-        if (progressClient) {
-          progressClient.write(
-            `data: ${JSON.stringify({ progress: 100 })}\n\n`
-          );
-          progressClient.end();
-          progressClient = null;
-        }
+        await cleanupTempFiles();
         res.status(200).json({ message: "Files extracted successfully." });
       } catch (err) {
-        res
-          .status(500)
-          .send("Error deleting temporary ZIP file: " + err.message);
+        console.error("Error during cleanup:", err.message);
+        res.status(500).send("Error during cleanup: " + err.message);
       }
     });
 
@@ -136,19 +103,6 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     console.error("Server error:", err);
     res.status(500).send("Server error: " + err.message);
   }
-});
-
-app.get("/progress", (req, res) => {
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
-  console.log("Client connected to /progress");
-  res.write(`data: ${JSON.stringify({ progress: 0 })}\n\n`);
-  progressClient = res;
-  req.on("close", () => {
-    console.log("Client disconnected");
-    progressClient = null;
-  });
 });
 
 app.listen(3001, "0.0.0.0", () => {
