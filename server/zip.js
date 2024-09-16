@@ -154,6 +154,6 @@ app.get("/progress", (req, res) => {
     progressClient = null; // Handle client disconnect
   });
 });
-app.listen(80, "0.0.0.0", () => {
-  console.log("Server started on http://34.129.91.231:80");
+app.listen(3001, "0.0.0.0", () => {
+  console.log("Server started on http://34.129.91.231:3001");
 });
