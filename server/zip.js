@@ -1,105 +1,159 @@
 const express = require("express");
 const multer = require("multer");
 const unzipper = require("unzipper");
-const cors = require("cors");
-const { Storage } = require("@google-cloud/storage");
-const path = require("path");
 const fs = require("fs");
-const archiver = require("archiver"); // Library to zip files
-const dotenv = require("dotenv");
-
-dotenv.config(); // Load environment variables from .env file
-
+const path = require("path");
+const cors = require("cors");
 const app = express();
-const upload = multer({ dest: path.join(__dirname, "uploads/tmp") }); // Temporary local folder for uploads
+const upload = multer({ dest: path.join(__dirname, "uploads/tmp") }); // Use a temporary folder
 
-// Google Cloud Storage setup
-const bucketName = "messenger_stats";
-const storage = new Storage({
-  keyFilename: process.env.GOOGLE_APPLICATION,
-});
-const bucket = storage.bucket(bucketName);
-
-app.use(cors({ origin: "http://localhost:3000" }));
+app.use(cors());
+app.use(cors({ origin: "*" }));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+let progressClient = null;
 
 app.post("/upload", upload.single("file"), async (req, res) => {
   const zipPath = req.file.path;
-
-  // Generate a unique folder name using timestamp and random string
-  const uniqueFolderName = `${Date.now()}_${Math.random()
-    .toString(36)
-    .substring(2, 15)}`;
-  const tempDir = path.join(__dirname, `uploads/${uniqueFolderName}/`);
-
+  const outputDir = path.join(__dirname, "uploads");
+  const tempUploadDir = path.join(__dirname, "uploads/tmp");
   const convoName = req.body.convoName;
-
+  let extractedFilesCount = 0;
+  let totalJsonFiles = 0;
   try {
-    // Step 1: Extract only the folder with convoName from the uploaded ZIP file
-    await fs.promises.mkdir(tempDir, { recursive: true });
-
-    const extractStream = fs.createReadStream(zipPath).pipe(unzipper.Parse());
-    extractStream.on("entry", async (entry) => {
+    // Ensure the output directory exists
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+    // First, count the total number of JSON files
+    const countStream = fs.createReadStream(zipPath).pipe(unzipper.Parse());
+    countStream.on("entry", function (entry) {
       const fileName = entry.path;
+      const isJson = fileName.endsWith(".json");
       if (
-        fileName.startsWith(
+        fileName.includes(
           `your_facebook_activity/messages/inbox/${convoName}`
-        )
+        ) &&
+        isJson
       ) {
-        const outputPath = path.join(tempDir, path.basename(fileName));
-        entry.pipe(fs.createWriteStream(outputPath));
+        totalJsonFiles++;
+      }
+      entry.autodrain(); // Discard entries during the count pass
+    });
+    await new Promise((resolve) => countStream.on("close", resolve));
+    // Now extract files and folders
+    const extractStream = fs.createReadStream(zipPath).pipe(unzipper.Parse());
+    extractStream.on("entry", function (entry) {
+      const fileName = entry.path;
+      const isJson = fileName.endsWith(".json");
+      const isPhotoFolder = fileName.includes("photos/");
+      const isAudioFolder = fileName.includes("audio/");
+      const isVideoFolder = fileName.includes("videos/");
+      if (
+        fileName.includes(`your_facebook_activity/messages/inbox/${convoName}`)
+      ) {
+        let outputPath;
+        // Determine the correct output path for different file types
+        if (isJson) {
+          outputPath = path.join(outputDir, path.basename(fileName));
+        } else if (isPhotoFolder) {
+          outputPath = path.join(outputDir, "photos", path.basename(fileName));
+        } else if (isAudioFolder) {
+          outputPath = path.join(outputDir, "audio", path.basename(fileName));
+        } else if (isVideoFolder) {
+          outputPath = path.join(outputDir, "videos", path.basename(fileName));
+        } else {
+          entry.autodrain();
+          return;
+        }
+        const outputDirPath = path.dirname(outputPath);
+        if (!fs.existsSync(outputDirPath)) {
+          fs.mkdirSync(outputDirPath, { recursive: true });
+        }
+        if (entry.type === "Directory") {
+          if (!fs.existsSync(outputPath)) {
+            fs.mkdirSync(outputPath);
+          }
+          entry.autodrain(); // Just create the directory, no need to pipe
+        } else {
+          console.log("Extracting file:", outputPath);
+          const outputStream = fs.createWriteStream(outputPath);
+          entry.pipe(outputStream).on("finish", () => {});
+          outputStream.on("error", (err) => {
+            console.error("Stream error:", err);
+          });
+          outputStream.on("close", () => {
+            if (isJson) extractedFilesCount++;
+            const progress =
+              Math.round((extractedFilesCount / totalJsonFiles) * 100 * 100) /
+              100;
+            console.log("Sending progress update:", progress);
+            if (progressClient) {
+              progressClient.write(`data: ${JSON.stringify({ progress })}\n\n`);
+              progressClient.flushHeaders();
+            }
+          });
+        }
       } else {
         entry.autodrain(); // Discard other entries
       }
     });
-
-    await new Promise((resolve, reject) => {
-      extractStream.on("close", resolve);
-      extractStream.on("error", reject);
+    extractStream.on("close", async () => {
+      try {
+        // Delete the ZIP file after extraction
+        await fs.promises.unlink(zipPath);
+        // Optionally, clean up the temporary upload directory
+        fs.readdir(tempUploadDir, (err, files) => {
+          if (err) {
+            console.error("Error reading temporary directory:", err.message);
+            return;
+          }
+          for (const file of files) {
+            fs.unlink(path.join(tempUploadDir, file), (err) => {
+              if (err) {
+                console.error("Error deleting temporary file:", err.message);
+              }
+            });
+          }
+        });
+        // Close the SSE connection
+        if (progressClient) {
+          progressClient.write(
+            `data: ${JSON.stringify({ progress: 100 })}\n\n`
+          );
+          progressClient.end();
+          progressClient = null;
+        }
+        res.status(200).json({
+          message: "Files extracted successfully.",
+        });
+      } catch (err) {
+        res
+          .status(500)
+          .send("Error deleting temporary ZIP file: " + err.message);
+      }
     });
-
-    // Step 2: Zip the extracted folder (convoName)
-    const outputZipPath = path.join(__dirname, `${uniqueFolderName}.zip`);
-    await new Promise((resolve, reject) => {
-      const output = fs.createWriteStream(outputZipPath);
-      const archive = archiver("zip", { zlib: { level: 9 } });
-
-      archive.pipe(output);
-
-      archive.directory(tempDir, false); // Zip the entire extracted folder
-      archive.finalize();
-
-      output.on("close", resolve);
-      archive.on("error", reject);
-    });
-
-    // Step 3: Upload the ZIP archive to Google Cloud Storage
-    const file = bucket.file(`${uniqueFolderName}.zip`);
-    await bucket.upload(outputZipPath, {
-      destination: file,
-      gzip: true,
-      metadata: {
-        cacheControl: "no-cache",
-      },
-    });
-
-    // Step 4: Clean up: delete temporary files and directories
-    fs.rmSync(tempDir, { recursive: true, force: true });
-    fs.unlinkSync(zipPath); // delete uploaded zip file
-    fs.unlinkSync(outputZipPath); // delete created zip archive
-
-    // Respond to client with the URL to access the uploaded file
-    const publicUrl = `https://storage.googleapis.com/${bucketName}/${uniqueFolderName}.zip`;
-
-    res.status(200).json({
-      message: "Files extracted, compressed, and uploaded successfully.",
-      fileUrl: publicUrl, // You can use this URL on the client side to access the file
+    extractStream.on("error", (err) => {
+      res.status(500).send("Error processing ZIP file: " + err.message);
     });
   } catch (err) {
-    console.error(err);
     res.status(500).send("Server error: " + err.message);
   }
 });
-
-app.listen(3001, () => {
-  console.log("Server started on http://localhost:3001");
+app.get("/progress", (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  console.log("Client connected to /progress");
+  // Send initial progress
+  res.write(`data: ${JSON.stringify({ progress: 0 })}\n\n`);
+  // Store the response to use in the extractStream
+  progressClient = res;
+  console.log("progressClient - should be set to res");
+  req.on("close", () => {
+    console.log("Client disconnected");
+    progressClient = null; // Handle client disconnect
+  });
+});
+app.listen(80, "0.0.0.0", () => {
+  console.log("Server started on http://34.129.91.231:80");
 });

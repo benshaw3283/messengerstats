@@ -78,107 +78,49 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
     }
   };
 
-  const extractJsonFilesFromZip = async (
-    zip: JSZip,
-    convoFormatted: string
-  ): Promise<any[]> => {
-    const jsonFiles: any[] = [];
-
-    // Pattern to match the folder path
-    const folderPattern = new RegExp(
-      `^your_facebook_activity/messages/inbox/${convoFormatted}_\\d+/`
-    );
-
+  const fetchFilesFromServer = async () => {
     try {
-      // Iterate over all files in the ZIP archive
-      for (const filename of Object.keys(zip.files)) {
-        const file = zip.files[filename];
-        console.log(file);
-
-        // Check if the file is within the target folder
-        if (folderPattern.test(file.name) && file.name.endsWith(".json")) {
-          // Extract and parse JSON files
-          const content = await file.async("text");
-          jsonFiles.push(JSON.parse(content));
-          console.log(jsonFiles);
-        }
-      }
+      const response = await fetch("/api/getFiles");
+      const files = await response.json();
+      console.log(files);
+      onFilesUploaded(files.fileObjects);
     } catch (error) {
-      console.error("Error extracting JSON files:", error);
-      throw new Error("Error processing JSON files from the ZIP archive.");
+      console.error("Error fetching files:", error);
     }
-
-    return jsonFiles;
-  };
-
-  const MAX_CHUNK_SIZE = 1 * 1024 * 1024 * 1024; // 1GB in bytes
-
-  const splitFileIntoChunks = (file: File) => {
-    const chunks = [];
-    let start = 0;
-
-    while (start < file.size) {
-      const end = Math.min(start + MAX_CHUNK_SIZE, file.size);
-      chunks.push(file.slice(start, end));
-      start = end;
-    }
-
-    return chunks;
   };
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setBegun(true);
     try {
-      if (!(data.file instanceof File)) {
-        throw new Error("Invalid file object.");
+      const formData = new FormData();
+      formData.append("file", data.file);
+      formData.append("convoName", data.convoName);
+      const response = await fetch("http://34.129.45.53:3001/upload", {
+        method: "POST",
+        body: formData,
+      });
+      if (response.ok) {
+        const responseData = await response.json();
+        setStatus(responseData.message);
+        toast({
+          title: responseData?.message,
+          variant: "default",
+          className: "border-2 border-white bg-green-600  text-white",
+        });
+        await fetchFilesFromServer();
+        setBegun(false);
+      } else {
+        setStatus("Upload failed.");
+        toast({
+          title: "Upload failed",
+          variant: "destructive",
+        });
+        setBegun(false);
       }
-
-      // Split the file into chunks
-      const chunks = splitFileIntoChunks(data.file);
-      console.log(`File split into ${chunks.length} chunks.`);
-
-      chunks.forEach(async (chunk, index) => {
-        console.log(`Processing chunk ${index + 1} of ${chunks.length}`);
-        const zip = new JSZip();
-        const fileContent: any = await readFileAsArrayBuffer(chunk);
-        await zip?.loadAsync(fileContent);
-        console.log(`Chunk ${index + 1} loaded successfully.`);
-
-        const convoFormatted = data.convoName.replace(/\s+/g, "").toLowerCase();
-        const jsonFiles = await extractJsonFilesFromZip(zip, convoFormatted);
-        console.log("JSON files extracted from chunk:", jsonFiles);
-        onFilesUploaded(jsonFiles);
-      });
-      toast({
-        title: "Files processed successfully",
-        variant: "default",
-        className: "border-2 border-white bg-green-600 text-white",
-      });
-    } catch (error) {
-      console.error("Error processing the ZIP file:", error);
-      toast({
-        title: "Error processing file",
-        description: "Error extracting files",
-        variant: "destructive",
-      });
-    } finally {
-      setBegun(false);
+    } catch (error: any) {
+      setStatus("Error: " + error.message);
+      console.log(status);
     }
-  };
-
-  const readFileAsArrayBuffer = (blob: Blob) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (reader.result instanceof ArrayBuffer) {
-          resolve(reader.result);
-        } else {
-          reject(new Error("Failed to read file as ArrayBuffer."));
-        }
-      };
-      reader.onerror = () => reject(reader.error);
-      reader.readAsArrayBuffer(blob);
-    });
   };
 
   const fileName = form.getValues("file");

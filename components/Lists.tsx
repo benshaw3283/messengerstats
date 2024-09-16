@@ -10,6 +10,13 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from "next/image";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 interface LoaderProps {
   src: string;
@@ -539,27 +546,51 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages }) => {
           </TabsContent>
           <TabsContent value="most">
             <div id="message"></div>
+
             <div id="photo">
-              {mostReactedPhoto?.map((photo, index) => (
-                <div key={index}>
-                  <div>
-                    <p>
-                      {index + 1 === 1 && "1st most reacted photo"}
-                      {index + 1 === 2 && "2nd most reacted photo"}
-                      {index + 1 === 3 && "3rd most reacted photo"}
-                    </p>
-                  </div>
-                  <Image
-                    loader={imageLoader}
-                    src={`uploads/${photo.photos[0].uri.slice(
-                      photo.photos[0].uri.lastIndexOf("photos/")
-                    )} `}
-                    alt="most reacted photo"
-                    width={500}
-                    height={500}
-                  />
-                </div>
-              ))}
+              <div className="flex justify-center py-2">
+                <h2 className="text-xl font-semibold font-Switzer tracking-wider bg-blue-700 rounded-sm p-2  w-fit border-2 border-white justify-center flex">
+                  Images
+                </h2>
+              </div>
+              <Carousel
+                orientation="horizontal"
+                opts={{ align: "center", loop: false }}
+                className="w-full max-w-lg ml-10 "
+              >
+                <CarouselContent className="-ml-1">
+                  {mostReactedPhoto?.map((photo, index) => (
+                    <div key={index}>
+                      <CarouselItem>
+                        <div className="pb-1">
+                          <p className="font-semibold">
+                            {(index === 0 && "Most reacted image") ||
+                              (index === 1 && "2nd most reacted image") ||
+                              (index === 2 && "3rd most reacted image")}
+                          </p>
+                          <div className="flex-row flex justify-between">
+                            <p>{`Sent by ${photo.sender_name}`}</p>
+                            <div className="w-16 h-6 bg-white rounded-full flex ">
+                              <p className="text-blue-700 pl-1 font-semibold">{`5 `}</p>
+                            </div>
+                          </div>
+                        </div>
+                        <Image
+                          loader={imageLoader}
+                          src={`uploads/${photo.photos[0].uri.slice(
+                            photo.photos[0].uri.lastIndexOf("photos/")
+                          )} `}
+                          alt="most reacted photo"
+                          width={500}
+                          height={500}
+                        />
+                      </CarouselItem>
+                    </div>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="text-blue-700" />
+                <CarouselNext className="text-blue-700" />
+              </Carousel>
             </div>
             <div id="video">
               {mostReactedVideo?.map((video, index) => (
