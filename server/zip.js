@@ -4,7 +4,7 @@ const unzipper = require("unzipper");
 const fs = require("fs");
 const path = require("path");
 const cors = require("cors");
-const timeout = require("connect-timeout");
+
 const app = express();
 const rimraf = require("rimraf");
 const upload = multer({ dest: path.join(__dirname, "uploads/tmp") });
@@ -12,7 +12,6 @@ const upload = multer({ dest: path.join(__dirname, "uploads/tmp") });
 app.use(cors({ origin: "*" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-app.use(timeout("20m")); // Set timeout to 20 minutes
 app.use((req, res, next) => {
   if (!req.timedout) next();
 });
@@ -106,5 +105,5 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 });
 
 app.listen(3001, "0.0.0.0", () => {
-  console.log("Server started on 34.129.91.231:3001");
+  console.log("Server started on http://34.129.91.231:3001");
 });
