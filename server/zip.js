@@ -101,6 +101,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   } catch (err) {
     console.error("Server error:", err);
     res.status(500).send("Server error: " + err.message);
+    console.log("error" + err.message);
   }
 });
 
