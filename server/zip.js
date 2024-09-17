@@ -106,5 +106,5 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 });
 
 app.listen(3001, "0.0.0.0", () => {
-  console.log("Server started on http://34.129.91.231:3001");
+  console.log("Server started on 34.129.91.231:3001");
 });
