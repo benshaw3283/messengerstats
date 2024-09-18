@@ -1,4 +1,4 @@
-const express = require("express");
+import express from "express";
 const multer = require("multer");
 const unzipper = require("unzipper");
 const fs = require("fs");
@@ -9,7 +9,7 @@ const app = express();
 const rimraf = require("rimraf");
 const upload = multer({ dest: path.join(__dirname, "uploads/tmp") });
 
-app.use(cors({ origin: "*" }));
+app.use(cors({ origin: "http://localhost:3000" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use((req, res, next) => {
