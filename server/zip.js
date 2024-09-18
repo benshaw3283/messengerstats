@@ -9,7 +9,7 @@ const app = express();
 const rimraf = require("rimraf");
 const upload = multer({ dest: path.join(__dirname, "uploads/tmp") });
 
-app.use(cors({ origin: "http://localhost:3000" }));
+app.use(cors({ origin: "*" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.options("/upload", cors());
 
@@ -76,16 +76,13 @@ app.post("/upload", upload.single("file"), async (req, res) => {
       }
     });
 
-    const cleanupTempFiles = () => {
-      return new Promise((resolve, reject) => {
-        rimraf(tempUploadDir, (err) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve();
-          }
-        });
-      });
+    const cleanupTempFiles = async () => {
+      try {
+        await rimraf(tempUploadDir);
+        console.log("Temporary files cleaned up.");
+      } catch (err) {
+        console.error("Error during cleanup:", err);
+      }
     };
 
     extractStream.on("close", async () => {
