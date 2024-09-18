@@ -3,10 +3,7 @@ import path from "path";
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const uploadsDirectory = path.join(
-    "/home/benshaw_dev/messengerstats/server",
-    "uploads"
-  );
+  const uploadsDirectory = path.join(process.cwd(), "server", "uploads");
 
   console.log("Looking for files in:", uploadsDirectory);
 
