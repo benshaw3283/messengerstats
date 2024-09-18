@@ -16,6 +16,11 @@ app.use((req, res, next) => {
   if (!req.timedout) next();
 });
 app.post("/upload", upload.single("file"), async (req, res) => {
+  console.log("Reached upload route.");
+  if (!req.file) {
+    console.error("No file uploaded.");
+    return res.status(400).json({ message: "No file uploaded." });
+  }
   const zipPath = req.file.path;
   const outputDir = path.join(__dirname, "uploads");
   const tempUploadDir = path.join(__dirname, "uploads/tmp");
