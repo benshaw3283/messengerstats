@@ -1,9 +1,15 @@
 import fs from "fs";
 import path from "path";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-export function GET(req: NextRequest, res: NextResponse) {
-  const uploadsDirectory = path.join(process.cwd(), "server", "uploads");
+export async function GET() {
+  const uploadsDirectory = path.join(
+    "/home/benshaw_dev/messengerstats/server",
+    "uploads"
+  );
+
+  console.log("Looking for files in:", uploadsDirectory);
+
   const files = fs
     .readdirSync(uploadsDirectory)
     .filter((file) => file.endsWith(".json"));

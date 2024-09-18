@@ -6,7 +6,7 @@ const path = require("path");
 const cors = require("cors");
 
 const app = express();
-const rimraf = require("rimraf");
+const { rimraf } = require("rimraf");
 const upload = multer({ dest: path.join(__dirname, "uploads/tmp") });
 
 app.use(cors({ origin: "*" }));
