@@ -104,7 +104,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     console.log("error" + err.message);
   }
 });
-
-app.listen(3001, "0.0.0.0", () => {
+const server = app.listen(3001, "0.0.0.0", () => {
   console.log("Server started on http://34.129.91.231:3001");
 });
+server.timeout = 20 * 60 * 1000;
