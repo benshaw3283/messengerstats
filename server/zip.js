@@ -11,6 +11,7 @@ const upload = multer({ dest: path.join(__dirname, "uploads/tmp") });
 
 app.use(cors({ origin: "http://localhost:3000" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.options("/upload", cors());
 
 app.use((req, res, next) => {
   if (!req.timedout) next();
