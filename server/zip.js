@@ -7,6 +7,14 @@ const cors = require("cors");
 
 const app = express();
 const { rimraf } = require("rimraf");
+
+const tempUploadDir = path.join(__dirname, "uploads/tmp");
+// Ensure 'uploads/tmp' directory exists
+if (!fs.existsSync(tempUploadDir)) {
+  fs.mkdirSync(tempUploadDir, { recursive: true });
+  console.log("Created 'uploads/tmp' directory.");
+}
+
 const upload = multer({ dest: path.join(__dirname, "uploads/tmp") });
 
 app.use(cors({ origin: "*" }));
@@ -24,14 +32,8 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   }
   const zipPath = req.file.path;
   const outputDir = path.join(__dirname, "uploads");
-  const tempUploadDir = path.join(__dirname, "uploads/tmp");
-  const convoName = req.body.convoName;
 
-  // Ensure 'uploads/tmp' directory exists
-  if (!fs.existsSync(tempUploadDir)) {
-    fs.mkdirSync(tempUploadDir, { recursive: true });
-    console.log("Created 'uploads/tmp' directory.");
-  }
+  const convoName = req.body.convoName;
 
   console.log(`Received ZIP file: ${zipPath}`);
   try {
