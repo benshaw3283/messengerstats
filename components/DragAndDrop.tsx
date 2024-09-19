@@ -80,9 +80,7 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
 
   const fetchFilesFromServer = async () => {
     try {
-      const response = await fetch(
-        "http://34.129.91.231:3001/app/api/getFiles"
-      );
+      const response = await fetch("http://34.129.91.231:3001/api/getFiles");
       const files = await response.json();
       console.log(files);
       onFilesUploaded(files.fileObjects);

@@ -293,7 +293,7 @@ const Demo = () => {
                           <p className="pr-2 flex ">{`6.`}</p>
                         </div>
                         <p className="pr-1 lg:pr-4 flex w-full pl-2 lg:pl-4">
-                          Diana King
+                          Fiona King
                         </p>
                         <p className="font-bold text-xl lg:pl-6 pl-2">
                           {selectedValue === 1 && addComma(346)}

@@ -27,6 +27,12 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   const tempUploadDir = path.join(__dirname, "uploads/tmp");
   const convoName = req.body.convoName;
 
+  // Ensure 'uploads/tmp' directory exists
+  if (!fs.existsSync(tempUploadDir)) {
+    fs.mkdirSync(tempUploadDir, { recursive: true });
+    console.log("Created 'uploads/tmp' directory.");
+  }
+
   console.log(`Received ZIP file: ${zipPath}`);
   try {
     console.log("Starting extraction...");
