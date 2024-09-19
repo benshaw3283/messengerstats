@@ -86,7 +86,7 @@ const Demo = () => {
         <section className="bg-neutral-100 p-2 rounded-lg mt-2 border-2 border-blue-700">
           <div className="flex flex-row gap-2 py-3 text-2xl font-semibold pt-5 bg-blue-700 rounded-sm p-2  z-10">
             <p>Total Messages:</p>
-            <p>100,000</p>
+            <p>34,790</p>
           </div>
         </section>
         <div className="pt-3 pb-3">
@@ -309,8 +309,8 @@ const Demo = () => {
           </TabsContent>
           <TabsContent value="most">
             <div id="message"></div>
-            <div id="photo">
-              <div className="flex justify-center py-2">
+            <div id="photo" className="border-t-2 border-slate-600 mt-4">
+              <div className="flex justify-center py-4">
                 <h2 className="text-xl font-semibold font-Switzer tracking-wider bg-blue-700 rounded-sm p-2  w-fit border-2 border-white justify-center flex">
                   Images
                 </h2>
@@ -380,8 +380,8 @@ const Demo = () => {
               </Carousel>
             </div>
 
-            <div id="video">
-              <div className="flex justify-center py-2">
+            <div id="video" className="border-t-2 border-slate-600 mt-4">
+              <div className="flex justify-center py-4">
                 <h2 className="text-xl font-semibold font-Switzer tracking-wider bg-blue-700 rounded-sm p-2  w-fit border-2 border-white justify-center flex">
                   Videos
                 </h2>
@@ -465,8 +465,8 @@ const Demo = () => {
               </Carousel>
             </div>
 
-            <div id="audio">
-              <div className="flex justify-center py-2">
+            <div id="audio" className="border-t-2 border-slate-600 mt-4">
+              <div className="flex justify-center py-4">
                 <h2 className="text-xl font-semibold font-Switzer tracking-wider bg-blue-700 rounded-sm p-2  w-fit border-2 border-white justify-center flex">
                   Audio
                 </h2>

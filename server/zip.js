@@ -107,10 +107,12 @@ app.post("/upload", upload.single("file"), async (req, res) => {
         console.log("Extraction complete. Cleaning up...");
         await fs.promises.unlink(zipPath);
         await cleanupTempFiles();
-        res.status(200).json({ message: "Files extracted successfully." });
+        return res
+          .status(200)
+          .json({ message: "Files extracted successfully." });
       } catch (err) {
         console.error("Error during cleanup:", err.message);
-        res.status(500).send("Error during cleanup: " + err.message);
+        return res.status(500).send("Error during cleanup: " + err.message);
       }
     });
 
@@ -155,11 +157,11 @@ app.get("/api/getFiles", async (req, res) => {
     console.log("deleted timestamped folder");
   } catch (err) {
     console.error("Error reading files:", err);
-    res.status(500).json({ error: "Failed to retrieve files." });
+    return res.status(500).json({ error: "Failed to retrieve files." });
   }
 });
 
 const server = app.listen(3001, "0.0.0.0", () => {
   console.log("Server started on http://34.129.91.231:3001");
 });
-server.timeout = 20 * 60 * 1000;
+server.timeout = 0;

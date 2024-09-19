@@ -291,7 +291,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, timestamp }) => {
   );
 
   return (
-    <div className="pt-10">
+    <div className="pt-10 pb-10">
       <div className="flex flex-col items-center ">
         <section className="bg-neutral-100 p-3 rounded-lg mt-2 border-2 border-blue-700">
           <div className="bg-blue-700 rounded-sm p-4  z-10">
@@ -548,9 +548,9 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, timestamp }) => {
           <TabsContent value="most">
             <div id="message"></div>
 
-            <div id="photo">
-              <div className="flex justify-center py-2">
-                <h2 className="text-xl font-semibold font-Switzer tracking-wider bg-blue-700 rounded-sm p-2  w-fit border-2 border-white justify-center flex">
+            <div id="photo" className="border-t-2 border-slate-600 mt-4">
+              <div className="flex justify-center py-4">
+                <h2 className="text-xl  font-Switzer tracking-wider bg-blue-700 rounded-sm p-2  w-fit border-2 border-white justify-center flex">
                   Images
                 </h2>
               </div>
@@ -561,79 +561,138 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, timestamp }) => {
               >
                 <CarouselContent className="-ml-1">
                   {mostReactedPhoto?.map((photo, index) => (
-                    <div key={index}>
-                      <CarouselItem>
-                        <div className="pb-1">
-                          <p className="font-semibold">
-                            {(index === 0 && "Most reacted image") ||
-                              (index === 1 && "2nd most reacted image") ||
-                              (index === 2 && "3rd most reacted image")}
-                          </p>
-                          <div className="flex-row flex justify-between">
-                            <p>{`Sent by ${photo.sender_name}`}</p>
-                            <div className="w-16 h-6 bg-white rounded-full flex ">
-                              <p className="text-blue-700 pl-1 font-semibold">{`5 `}</p>
-                            </div>
+                    <CarouselItem key={index}>
+                      <div className="pb-1">
+                        <p className="font-semibold">
+                          {(index === 0 && "Most reacted image") ||
+                            (index === 1 && "2nd most reacted image") ||
+                            (index === 2 && "3rd most reacted image")}
+                        </p>
+                        <div className="flex-row flex justify-between">
+                          <p>{`Sent by ${photo.sender_name}`}</p>
+                          <div className="w-16 h-6 bg-white rounded-full flex ">
+                            <p className="text-blue-700 pl-1 font-semibold">
+                              {photo.reactions.length}
+                            </p>
                           </div>
                         </div>
-                        <Image
-                          loader={imageLoader}
-                          src={`uploads/${timestamp}/${photo.photos[0].uri.slice(
-                            photo.photos[0].uri.lastIndexOf("photos/")
-                          )} `}
-                          alt="most reacted photo"
-                          width={500}
-                          height={500}
-                        />
-                      </CarouselItem>
-                    </div>
+                      </div>
+                      <Image
+                        loader={imageLoader}
+                        src={`uploads/${timestamp}/${photo.photos[0].uri.slice(
+                          photo.photos[0].uri.lastIndexOf("photos/")
+                        )} `}
+                        alt="most reacted photo"
+                        width={500}
+                        height={500}
+                      />
+                    </CarouselItem>
                   ))}
                 </CarouselContent>
                 <CarouselPrevious className="text-blue-700" />
                 <CarouselNext className="text-blue-700" />
               </Carousel>
             </div>
-            <div id="video">
-              {mostReactedVideo?.map((video, index) => (
-                <div key={index}>
-                  <div>
-                    <p>
-                      {index + 1 === 1 && "1st most reacted video"}
-                      {index + 1 === 2 && "2nd most reacted video"}
-                      {index + 1 === 3 && "3rd most reacted video"}
-                    </p>
-                  </div>
-                  <video
-                    width="320"
-                    height="240"
-                    controls
-                    preload="auto"
-                    crossOrigin="anonymous"
-                    playsInline
-                  >
-                    <source
-                      src={`http://34.129.91.231:3001/uploads/${timestamp}/${video.videos[0].uri.slice(
-                        video.videos[0].uri.lastIndexOf("videos/")
-                      )}`}
-                      type="video/mp4"
-                    />
-                    Videos not supported
-                  </video>
-                </div>
-              ))}
+            <div id="video" className="border-t-2 border-slate-600 mt-4">
+              <div className="flex justify-center py-4">
+                <h2 className="text-xl  font-Switzer tracking-wider bg-blue-700 rounded-sm p-2  w-fit border-2 border-white justify-center flex">
+                  Videos
+                </h2>
+              </div>
+              <Carousel
+                orientation="horizontal"
+                opts={{ align: "center", loop: false }}
+                className="w-full max-w-lg ml-10 "
+              >
+                <CarouselContent className="-ml-1">
+                  {mostReactedVideo?.map((video, index) => (
+                    <CarouselItem key={index}>
+                      <div className="pb-1">
+                        <p className="font-semibold">
+                          {(index === 0 && "Most reacted video") ||
+                            (index === 1 && "2nd most reacted video") ||
+                            (index === 2 && "3rd most reacted video")}
+                        </p>
+                        <div className="flex-row flex justify-between">
+                          <p>{`Sent by ${video.sender_name}`}</p>
+                          <div className="w-16 h-6 bg-white rounded-full flex ">
+                            <p className="text-blue-700 pl-1 font-semibold">
+                              {video.reactions.length}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex justify-center items-center">
+                        {" "}
+                        <video
+                          width="320"
+                          height="240"
+                          controls
+                          preload="auto"
+                          crossOrigin="anonymous"
+                          playsInline
+                          className="rounded-lg shadow-md"
+                        >
+                          <source
+                            src={`http://34.129.91.231:3001/uploads/${timestamp}/${video.videos[0].uri.slice(
+                              video.videos[0].uri.lastIndexOf("videos/")
+                            )}`}
+                            type="video/mp4"
+                          />
+                          Videos not supported
+                        </video>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="text-blue-700" />
+                <CarouselNext className="text-blue-700" />
+              </Carousel>
             </div>
 
-            <div id="audio">
-              {mostReactedAudio?.map((audio, index) => (
-                <div key={index}>
-                  <audio
-                    src={`http://34.129.91.231:3001/uploads/${timestamp}/${audio.audio_files[0].uri.slice(
-                      audio.audio_files[0].uri.lastIndexOf("audio/")
-                    )}`}
-                    controls
-                  ></audio>
-                </div>
-              ))}
+            <div id="audio" className="border-t-2 border-slate-600 mt-4">
+              <div className="flex justify-center py-4">
+                <h2 className="text-xl  font-Switzer tracking-wider bg-blue-700 rounded-sm p-2  w-fit border-2 border-white justify-center flex">
+                  Audio
+                </h2>
+              </div>
+              <Carousel
+                orientation="horizontal"
+                opts={{ align: "center", loop: false }}
+                className="w-full max-w-lg ml-10 "
+              >
+                <CarouselContent className="-ml-1">
+                  {mostReactedAudio?.map((audio, index) => (
+                    <CarouselItem key={index}>
+                      <div className="pb-1">
+                        <p className="font-semibold">
+                          {(index === 0 && "Most reacted audio") ||
+                            (index === 1 && "2nd most reacted audio") ||
+                            (index === 2 && "3rd most reacted audio")}
+                        </p>
+                        <div className="flex-row flex justify-between">
+                          <p>{`Sent by ${audio.sender_name}`}</p>
+                          <div className="w-16 h-6 bg-white rounded-full flex ">
+                            <p className="text-blue-700 pl-1 font-semibold">
+                              {audio.reactions.length}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex justify-center items-center">
+                        <audio
+                          src={`http://34.129.91.231:3001/uploads/${timestamp}/${audio.audio_files[0].uri.slice(
+                            audio.audio_files[0].uri.lastIndexOf("audio/")
+                          )}`}
+                          controls
+                        ></audio>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="text-blue-700" />
+                <CarouselNext className="text-blue-700" />
+              </Carousel>
             </div>
           </TabsContent>
         </Tabs>

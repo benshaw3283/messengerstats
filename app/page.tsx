@@ -84,7 +84,7 @@ export default function Home() {
           Messenger Stats
         </h1>
 
-        <div className="flex flex-row w-full gap-[500px]">
+        <div className="flex flex-row w-full gap-[500px] md:gap-[300px]">
           <div className=" flex flex-col gap-4 pl-10">
             <div className="h-[200px] w-[600px] flex  rounded-lg rounded-t-none rounded-br-none flex-col border-2 border-r-0 border-t-0  border-blue-700">
               <div className="bg-blue-700 rounded-tl-none w-full h-14 rounded-t-lg items-center flex pl-2">
@@ -123,13 +123,13 @@ export default function Home() {
                 <Request />
               </div>
             </div>
-            <div className="h-[300px] w-[600px] flex  rounded-lg rounded-t-none rounded-br-none flex-col border-2 border-r-0 border-t-0  border-blue-700">
+            <div className="h-[288px] w-[600px] flex  rounded-lg rounded-t-none rounded-br-none flex-col border-2 border-r-0 border-t-0  border-blue-700">
               <div className="bg-blue-700 rounded-tl-none w-full h-14 rounded-t-lg items-center flex pl-2">
                 <h2 className="text-white font-Switzer font-semibold text-3xl tracking-wider">
                   Choose Files
                 </h2>
               </div>
-              <div className="p-2 pt-4 pb-0 text-slate-500">
+              <div className="p-2 pt-1 pb-0 text-slate-500">
                 <p>
                   Drop the zip file in the area below and enter the name of the
                   conversation you want to see the stats of.
@@ -141,27 +141,31 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <div className="-translate-y-[72px] scale-75 shadow-inner shadow-blue-700 rounded-lg p-4 px-10">
-            <div className="">
-              <h1 className="justify-center flex font-Switzer text-3xl font-semibold tracking-wide pb-4">
+          <div className="-translate-y-[100px] scale-75 border-l-2 border-b-2 border-blue-700 rounded-lg rounded-br-none ">
+            <div className="bg-blue-700 rounded-t-lg h-14 justify-center place-items-center flex">
+              <h1 className=" font-Switzer text-4xl font-semibold tracking-wide ">
                 Demo
               </h1>
             </div>
-            <Demo />
+            <div className="p-10">
+              <Demo />
+            </div>
           </div>
         </div>
       </div>
 
       {selectedFiles.length ? (
-        <Lists
-          selectedFiles={selectedFiles}
-          fileMessages={fileMessages}
-          timestamp={timestamp}
-        />
+        <div>
+          <Lists
+            selectedFiles={selectedFiles}
+            fileMessages={fileMessages}
+            timestamp={timestamp}
+          />
+        </div>
       ) : (
         <div>
           <p className="flex text-lg font-semibold justify-center pt-4">
-            Upload files to see stats
+            Upload ZIP file to see stats
           </p>
         </div>
       )}
