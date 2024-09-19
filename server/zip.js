@@ -30,9 +30,17 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     console.error("No file uploaded.");
     return res.status(400).json({ message: "No file uploaded." });
   }
+  //directories
+  const timestamp = Date.now();
   const zipPath = req.file.path;
-  const outputDir = path.join(__dirname, "uploads");
+  const outputDir = path.join(__dirname, "uploads", `${timestamp}`);
+  //
 
+  // Ensure the timestamped folder is created
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+    console.log(`Created 'uploads/${timestamp}' directory.`);
+  }
   const convoName = req.body.convoName;
 
   console.log(`Received ZIP file: ${zipPath}`);
@@ -87,7 +95,9 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     const cleanupTempFiles = async () => {
       try {
         await rimraf(tempUploadDir);
-        console.log("Temporary files cleaned up.");
+        console.log("Temporary zip cleaned up.");
+        await rimraf(outputDir);
+        console.log("deleted timestamped folder");
       } catch (err) {
         console.error("Error during cleanup:", err);
       }
@@ -117,7 +127,12 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 });
 
 app.get("/api/getFiles", (req, res) => {
-  const uploadsDirectory = path.join(process.cwd(), "server", "uploads");
+  const uploadsDirectory = path.join(
+    process.cwd(),
+    "server",
+    "uploads",
+    `${timestamp}`
+  );
 
   console.log("Looking for files in:", uploadsDirectory);
 
