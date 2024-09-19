@@ -113,6 +113,34 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     console.log("error" + err.message);
   }
 });
+
+app.get("/api/getFiles", (req, res) => {
+  const uploadsDirectory = path.join(process.cwd(), "server", "uploads");
+
+  console.log("Looking for files in:", uploadsDirectory);
+
+  try {
+    const files = fs
+      .readdirSync(uploadsDirectory)
+      .filter((file) => file.endsWith(".json"));
+    console.log("files in api route", files);
+
+    const fileObjects = files.map((fileName) => {
+      const filePath = path.join(uploadsDirectory, fileName);
+      const fileContent = fs.readFileSync(filePath, "utf-8");
+      return {
+        fileName,
+        content: JSON.parse(fileContent),
+      };
+    });
+
+    res.status(200).json({ fileObjects });
+  } catch (err) {
+    console.error("Error reading files:", err);
+    res.status(500).json({ error: "Failed to retrieve files." });
+  }
+});
+
 const server = app.listen(3001, "0.0.0.0", () => {
   console.log("Server started on http://34.129.91.231:3001");
 });
