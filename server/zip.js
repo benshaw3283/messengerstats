@@ -16,6 +16,7 @@ if (!fs.existsSync(tempUploadDir)) {
 }
 
 const upload = multer({ dest: path.join(__dirname, "uploads/tmp") });
+const timestamp = Date.now();
 
 app.use(cors({ origin: "*" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -31,7 +32,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     return res.status(400).json({ message: "No file uploaded." });
   }
   //directories
-  const timestamp = Date.now();
+
   const zipPath = req.file.path;
   const outputDir = path.join(__dirname, "uploads", `${timestamp}`);
   //
@@ -96,8 +97,6 @@ app.post("/upload", upload.single("file"), async (req, res) => {
       try {
         await rimraf(tempUploadDir);
         console.log("Temporary zip cleaned up.");
-        await rimraf(outputDir);
-        console.log("deleted timestamped folder");
       } catch (err) {
         console.error("Error during cleanup:", err);
       }
@@ -126,7 +125,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   }
 });
 
-app.get("/api/getFiles", (req, res) => {
+app.get("/api/getFiles", async (req, res) => {
   const uploadsDirectory = path.join(
     process.cwd(),
     "server",
@@ -152,6 +151,8 @@ app.get("/api/getFiles", (req, res) => {
     });
 
     res.status(200).json({ fileObjects });
+    await rimraf(outputDir);
+    console.log("deleted timestamped folder");
   } catch (err) {
     console.error("Error reading files:", err);
     res.status(500).json({ error: "Failed to retrieve files." });
