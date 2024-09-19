@@ -150,7 +150,7 @@ app.get("/api/getFiles", async (req, res) => {
       };
     });
 
-    res.status(200).json({ fileObjects });
+    res.status(200).json({ fileObjects, timestamp });
     await rimraf(outputDir);
     console.log("deleted timestamped folder");
   } catch (err) {

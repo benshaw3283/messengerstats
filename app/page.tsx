@@ -5,6 +5,7 @@ import React from "react";
 import Lists from "@/components/Lists";
 import Demo from "@/components/Demo";
 import Request from "@/components/Request";
+import { time } from "console";
 
 interface Reaction {
   reaction: string;
@@ -42,9 +43,11 @@ interface SelectedFile {
 export default function Home() {
   const [selectedFiles, setSelectedFiles] = React.useState<SelectedFile[]>([]);
   const [fileMessages, setFileMessages] = React.useState<Message[]>([]);
+  const [timestamp, setTimestamp] = React.useState<any>(null);
 
-  const handleFilesUploaded = (files: any[]) => {
+  const handleFilesUploaded = (files: any[], timestamp: Date) => {
     setSelectedFiles(files);
+    setTimestamp(timestamp);
     console.log("Files received from ZipFileDropzone:", files);
   };
   // let folderName = selectedFiles[0];
@@ -150,7 +153,11 @@ export default function Home() {
       </div>
 
       {selectedFiles.length ? (
-        <Lists selectedFiles={selectedFiles} fileMessages={fileMessages} />
+        <Lists
+          selectedFiles={selectedFiles}
+          fileMessages={fileMessages}
+          timestamp={timestamp}
+        />
       ) : (
         <div>
           <p className="flex text-lg font-semibold justify-center pt-4">

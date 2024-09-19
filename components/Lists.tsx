@@ -82,9 +82,10 @@ interface SelectedFile {
 interface Props {
   selectedFiles: Array<SelectedFile>;
   fileMessages: Array<Message>;
+  timestamp: Date;
 }
 
-const Lists: React.FC<Props> = ({ selectedFiles, fileMessages }) => {
+const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, timestamp }) => {
   const { toast } = useToast();
   const [selectedValue, setSelectedValue] = React.useState<number>(0);
   const div1Ref = React.useRef<any>(null);
@@ -577,7 +578,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages }) => {
                         </div>
                         <Image
                           loader={imageLoader}
-                          src={`uploads/${photo.photos[0].uri.slice(
+                          src={`uploads/${timestamp}/${photo.photos[0].uri.slice(
                             photo.photos[0].uri.lastIndexOf("photos/")
                           )} `}
                           alt="most reacted photo"
@@ -611,7 +612,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages }) => {
                     playsInline
                   >
                     <source
-                      src={`http://34.129.91.231:3001/uploads/${video.videos[0].uri.slice(
+                      src={`http://34.129.91.231:3001/uploads/${timestamp}/${video.videos[0].uri.slice(
                         video.videos[0].uri.lastIndexOf("videos/")
                       )}`}
                       type="video/mp4"
@@ -626,7 +627,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages }) => {
               {mostReactedAudio?.map((audio, index) => (
                 <div key={index}>
                   <audio
-                    src={`http://34.129.91.231:3001/uploads/${audio.audio_files[0].uri.slice(
+                    src={`http://34.129.91.231:3001/uploads/${timestamp}/${audio.audio_files[0].uri.slice(
                       audio.audio_files[0].uri.lastIndexOf("audio/")
                     )}`}
                     controls

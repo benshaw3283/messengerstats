@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 
 interface ZipFileDropzoneProps {
-  onFilesUploaded: (files: any[]) => void;
+  onFilesUploaded: (files: any[], timestamp: any) => void;
 }
 
 const formSchema = z.object({
@@ -83,7 +83,7 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
       const response = await fetch("http://34.129.91.231:3001/api/getFiles");
       const files = await response.json();
       console.log(files);
-      onFilesUploaded(files.fileObjects);
+      onFilesUploaded(files.fileObjects, files.timestamp);
     } catch (error) {
       console.error("Error fetching files:", error);
     }
