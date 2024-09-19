@@ -23,7 +23,7 @@ interface LoaderProps {
 }
 
 const imageLoader = ({ src }: LoaderProps): string => {
-  const uri = `http://localhost:3001/${src}`;
+  const uri = `http://34.129.91.231:3001/${src}`;
   console.log(uri);
   return uri;
 };
@@ -611,7 +611,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages }) => {
                     playsInline
                   >
                     <source
-                      src={`http://localhost:3001/uploads/${video.videos[0].uri.slice(
+                      src={`http://34.129.91.231:3001/uploads/${video.videos[0].uri.slice(
                         video.videos[0].uri.lastIndexOf("videos/")
                       )}`}
                       type="video/mp4"
@@ -626,7 +626,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages }) => {
               {mostReactedAudio?.map((audio, index) => (
                 <div key={index}>
                   <audio
-                    src={`http://localhost:3001/uploads/${audio.audio_files[0].uri.slice(
+                    src={`http://34.129.91.231:3001/uploads/${audio.audio_files[0].uri.slice(
                       audio.audio_files[0].uri.lastIndexOf("audio/")
                     )}`}
                     controls
