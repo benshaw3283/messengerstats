@@ -3,9 +3,8 @@ import React, { useState, DragEvent, ChangeEvent } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import ProgressBar from "./Progress";
 import { useToast } from "./ui/use-toast";
-import JSZip from "jszip";
+
 import {
   Form,
   FormControl,
@@ -16,27 +15,16 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
-interface ZipFileDropzoneProps {
-  onFilesUploaded: (files: any[], timestamp: any) => void;
+interface FolderDropzoneProps {
+  onFilesUploaded: (files: any[]) => void;
 }
 
 const formSchema = z.object({
   convoName: z.string().min(2, { message: "Must be over 2 characters" }),
-  file: z
-    .any()
-    .refine(
-      (file: File) =>
-        file.type === "application/x-zip-compressed" ||
-        file.type === "application/zip",
-      {
-        message: "Please upload a valid ZIP file.",
-      }
-    ),
+  file: z.any(),
 });
 
-const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
-  onFilesUploaded,
-}) => {
+const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
   const { toast } = useToast();
   const [dragging, setDragging] = useState<boolean>(false);
   const [status, setStatus] = useState<string>("");
@@ -67,59 +55,127 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
     setDragging(false);
 
     const files = Array.from(e.dataTransfer.files);
-    form.setValue("file", files[0]);
+    form.setValue("file", files); // Set the entire file list, not just the first file
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target?.files?.[0];
-    if (selectedFile) {
-      form.setValue("file", selectedFile);
+    const selectedFiles = e.target?.files;
+    if (selectedFiles) {
+      form.setValue("file", selectedFiles);
       form.trigger("file");
     }
   };
 
-  const fetchFilesFromServer = async () => {
-    try {
-      const response = await fetch("http://34.129.91.231:3001/api/getFiles");
-      const files = await response.json();
-      console.log(files);
-      onFilesUploaded(files.fileObjects, files.timestamp);
-    } catch (error) {
-      console.error("Error fetching files:", error);
+  // Step 1: Split entire folder into chunks (for browser limit purposes)
+  const splitIntoChunks = (files: File[], maxSize: number) => {
+    console.log(maxSize);
+    let chunk: File[] = [];
+    let chunkSize = 0;
+    const chunks: File[][] = [];
+
+    files.forEach((file) => {
+      const fileSize = file.size;
+      if (chunkSize + fileSize <= maxSize) {
+        chunk.push(file);
+        chunkSize += fileSize;
+      } else {
+        chunks.push(chunk);
+        chunk = [file];
+        chunkSize = fileSize;
+      }
+    });
+
+    if (chunk.length > 0) {
+      chunks.push(chunk);
     }
+
+    return chunks;
+  };
+
+  const traverseFolder = async (
+    directoryEntry: any,
+    convoName: string
+  ): Promise<File[]> => {
+    return new Promise((resolve) => {
+      const reader = directoryEntry.createReader();
+      let entries: any[] = [];
+      let targetFiles: File[] = [];
+
+      const readEntries = () => {
+        reader.readEntries(async (fileEntries: any[]) => {
+          if (fileEntries.length === 0) {
+            // No more entries to read, process them
+            for (const entry of entries) {
+              if (entry.isFile) {
+                entry.file((file: File) => {
+                  if (file.size > 0) {
+                    targetFiles.push(file);
+                  }
+                });
+              }
+            }
+            resolve(targetFiles);
+          } else {
+            entries.push(...fileEntries);
+            readEntries(); // Continue reading entries
+          }
+        });
+      };
+      readEntries();
+    });
   };
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setBegun(true);
     try {
-      const formData = new FormData();
-      formData.append("file", data.file);
-      formData.append("convoName", data.convoName);
-      const response = await fetch("http://34.129.91.231:3001/upload", {
-        method: "POST",
-        body: formData,
-      });
-      if (response.ok) {
-        const responseData = await response.json();
-        setStatus(responseData.message);
-        toast({
-          title: responseData?.message,
-          variant: "default",
-          className: "border-2 border-white bg-green-600  text-white",
-        });
-        await fetchFilesFromServer();
+      const fileList = data.file;
+      console.log(fileList);
+
+      if (fileList && fileList.length > 0) {
+        // Log the entire folder content for debugging
+        const allFiles = Array.from(fileList as FileList);
+        console.log("Files before chunking:", allFiles);
+
+        // Chunk the entire folder (since it's larger than 7GB)
+        const folderChunks = splitIntoChunks(allFiles, 2 * 1024 * 1024 * 1024); // 2GB chunks
+
+        console.log("Folder has been split into chunks:", folderChunks.length);
+
+        // Now, traverse each chunk to find the convoName folder
+        const matchingFiles: File[] = [];
+
+        for (const chunk of folderChunks) {
+          for (const file of chunk) {
+            const path = file.webkitRelativePath;
+
+            // Find the convoName folder inside 'messages/inbox'
+            if (
+              path.includes("messages/inbox/") &&
+              path.includes(data.convoName)
+            ) {
+              matchingFiles.push(file);
+              console.log(`${file.name}: ${file.size} bytes at path: ${path}`);
+            }
+          }
+        }
+
+        // If no matching conversation folder found, throw an error
+        if (matchingFiles.length === 0) {
+          throw new Error(
+            `No folder found matching convoName "${data.convoName}"`
+          );
+        }
+
+        // Send the matched files from the convoName folder to the parent component
+        onFilesUploaded(matchingFiles);
         setBegun(false);
       } else {
-        setStatus("Upload failed.");
-        toast({
-          title: "Upload failed",
-          variant: "destructive",
-        });
-        setBegun(false);
+        throw new Error("No files found in the selected folder");
       }
     } catch (error: any) {
+      console.error("Error processing folder:", error);
       setStatus("Error: " + error.message);
-      console.log(status);
+      setBegun(false);
     }
   };
 
@@ -127,7 +183,7 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
 
   return (
     <div>
-      <p>{fileName?.name}</p>
+      <p>{fileName ? `Selected: ${fileName[0]?.name}` : "No file selected"}</p>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -140,9 +196,9 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
               return (
                 <FormItem>
                   <div
-                    className={`border-2 border-dashed  border-white cursor-pointer rounded-lg  ${
-                      dragging && "border-2 border-double"
-                    } bg-blue-700 w-[250px] h-[102px] `}
+                    className={`border-2 border-dashed border-white cursor-pointer rounded-lg ${
+                      dragging ? "border-2 border-double" : ""
+                    } bg-blue-700 w-[250px] h-[102px]`}
                     onDragEnter={handleDragEnter}
                     onDragOver={(e) => e.preventDefault()}
                     onDragLeave={handleDragLeave}
@@ -151,14 +207,15 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
                     <FormControl>
                       <Input
                         type="file"
-                        accept=".zip"
+                        // @ts-ignore
+                        webkitdirectory="true"
                         className="opacity-0 w-[250px] h-[80px] absolute cursor-pointer"
-                        onChange={(e) => handleFileChange(e)}
+                        onChange={handleFileChange}
                       />
                     </FormControl>
                     <FormMessage />
                     <FormLabel
-                      htmlFor="zip-upload"
+                      htmlFor="folder-upload"
                       className="cursor-pointer h-full place-items-center justify-center flex text-white font-bold"
                     >
                       {fileName ? (
@@ -196,7 +253,7 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
                 <FormItem className="pl-2 pt-1">
                   <FormLabel
                     htmlFor="convoName"
-                    className="text-lg   text-white font-semibold"
+                    className="text-lg text-white font-semibold"
                   >
                     Conversation Name
                   </FormLabel>
@@ -221,9 +278,10 @@ const ZipFileDropzone: React.FC<ZipFileDropzoneProps> = ({
           </button>
         </form>
       </Form>
-      {begun ? <p>processing</p> : null}
+      {begun ? <p>Processing...</p> : null}
+      {status && <p>{status}</p>}
     </div>
   );
 };
 
-export default ZipFileDropzone;
+export default FolderDropzone;

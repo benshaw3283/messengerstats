@@ -23,7 +23,7 @@ interface LoaderProps {
 }
 
 const imageLoader = ({ src }: LoaderProps): string => {
-  const uri = `http://34.129.91.231:3001/${src}`;
+  const uri = `http://localhost:3001/${src}`;
   console.log(uri);
   return uri;
 };
@@ -82,10 +82,9 @@ interface SelectedFile {
 interface Props {
   selectedFiles: Array<SelectedFile>;
   fileMessages: Array<Message>;
-  timestamp: Date;
 }
 
-const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, timestamp }) => {
+const Lists: React.FC<Props> = ({ selectedFiles, fileMessages }) => {
   const { toast } = useToast();
   const [selectedValue, setSelectedValue] = React.useState<number>(0);
   const div1Ref = React.useRef<any>(null);
