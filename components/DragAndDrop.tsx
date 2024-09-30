@@ -49,24 +49,62 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
     setDragging(false);
   };
 
-  const handleDrop = (e: DragEvent) => {
+  const handleDrop = async (e: DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragging(false);
 
-    const files = Array.from(e.dataTransfer.files);
-    form.setValue("file", files); // Set the entire file list, not just the first file
+    const items = e.dataTransfer.items;
+    const files: File[] = [];
+
+    const traverseDirectory = (item: any, path: string): Promise<void> => {
+      return new Promise<void>((resolve) => {
+        if (item.isDirectory) {
+          const dirReader = item.createReader();
+          dirReader.readEntries(async (entries: any[]) => {
+            for (const entry of entries) {
+              await traverseDirectory(entry, path + item.name + "/");
+              console.log(path);
+            }
+            resolve();
+          });
+        } else if (item.isFile) {
+          item.file((file: File) => {
+            // The webkitRelativePath is already populated, so no need to set it manually
+            files.push(file);
+            resolve();
+          });
+        }
+      });
+    };
+
+    const readItems = async () => {
+      const promises = [];
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i].webkitGetAsEntry();
+        if (item) {
+          promises.push(traverseDirectory(item, ""));
+        }
+      }
+      await Promise.all(promises);
+      form.setValue("file", files); // Set the file array in the form
+      form.trigger("file"); // Trigger validation or any side effects on change
+    };
+
+    await readItems();
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = e.target?.files;
-    if (selectedFiles) {
-      form.setValue("file", selectedFiles);
+    const files = e.target.files;
+    if (files) {
+      const allFiles = Array.from(files);
+      console.log("Files uploaded:", allFiles);
+
+      form.setValue("file", allFiles); // Pass the entire file array
       form.trigger("file");
     }
   };
 
-  // Step 1: Split entire folder into chunks (for browser limit purposes)
   const splitIntoChunks = (files: File[], maxSize: number) => {
     console.log(maxSize);
     let chunk: File[] = [];
@@ -75,6 +113,8 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
 
     files.forEach((file) => {
       const fileSize = file.size;
+
+      // Split based on size
       if (chunkSize + fileSize <= maxSize) {
         chunk.push(file);
         chunkSize += fileSize;
@@ -88,94 +128,49 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
     if (chunk.length > 0) {
       chunks.push(chunk);
     }
-
+    console.log("chunks", chunks);
     return chunks;
   };
 
-  const traverseFolder = async (
-    directoryEntry: any,
-    convoName: string
-  ): Promise<File[]> => {
-    return new Promise((resolve) => {
-      const reader = directoryEntry.createReader();
-      let entries: any[] = [];
-      let targetFiles: File[] = [];
-
-      const readEntries = () => {
-        reader.readEntries(async (fileEntries: any[]) => {
-          if (fileEntries.length === 0) {
-            // No more entries to read, process them
-            for (const entry of entries) {
-              if (entry.isFile) {
-                entry.file((file: File) => {
-                  if (file.size > 0) {
-                    targetFiles.push(file);
-                  }
-                });
-              }
-            }
-            resolve(targetFiles);
-          } else {
-            entries.push(...fileEntries);
-            readEntries(); // Continue reading entries
-          }
-        });
-      };
-      readEntries();
-    });
-  };
-
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    setBegun(true);
     try {
       const fileList = data.file;
-      console.log(fileList);
-
       if (fileList && fileList.length > 0) {
-        // Log the entire folder content for debugging
         const allFiles = Array.from(fileList as FileList);
         console.log("Files before chunking:", allFiles);
 
-        // Chunk the entire folder (since it's larger than 7GB)
-        const folderChunks = splitIntoChunks(allFiles, 2 * 1024 * 1024 * 1024); // 2GB chunks
+        // Split the uploaded folder into chunks (if necessary)
+        const chunks = splitIntoChunks(allFiles, 2 * 1024 * 1024 * 1024); // 2GB chunks
+        console.log(`Total Chunks Created: ${chunks.length}`);
 
-        console.log("Folder has been split into chunks:", folderChunks.length);
-
-        // Now, traverse each chunk to find the convoName folder
-        const matchingFiles: File[] = [];
-
-        for (const chunk of folderChunks) {
-          for (const file of chunk) {
+        // Traverse each chunk to find the convoName folder
+        const convoFiles: File[] = [];
+        chunks.forEach((chunk) => {
+          chunk.forEach((file) => {
             const path = file.webkitRelativePath;
-
-            // Find the convoName folder inside 'messages/inbox'
             if (
-              path.includes("messages/inbox/") &&
+              path.includes("your_facebook_activity/messages/inbox/") &&
               path.includes(data.convoName)
             ) {
-              matchingFiles.push(file);
-              console.log(`${file.name}: ${file.size} bytes at path: ${path}`);
+              convoFiles.push(file);
+              console.log(`Found matching file: ${file.name} at path: ${path}`);
             }
-          }
-        }
+          });
+        });
 
-        // If no matching conversation folder found, throw an error
-        if (matchingFiles.length === 0) {
+        if (convoFiles.length === 0) {
           throw new Error(
             `No folder found matching convoName "${data.convoName}"`
           );
         }
 
-        // Send the matched files from the convoName folder to the parent component
-        onFilesUploaded(matchingFiles);
-        setBegun(false);
+        // Send files for further processing
+        onFilesUploaded(convoFiles);
       } else {
         throw new Error("No files found in the selected folder");
       }
     } catch (error: any) {
       console.error("Error processing folder:", error);
-      setStatus("Error: " + error.message);
-      setBegun(false);
     }
   };
 
@@ -183,7 +178,7 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
 
   return (
     <div>
-      <p>{fileName ? `Selected: ${fileName[0]?.name}` : "No file selected"}</p>
+      <p>{fileName ? `Selected: ${fileName.name}` : "No file selected"}</p>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -209,6 +204,7 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
                         type="file"
                         // @ts-ignore
                         webkitdirectory="true"
+                        multiple
                         className="opacity-0 w-[250px] h-[80px] absolute cursor-pointer"
                         onChange={handleFileChange}
                       />
