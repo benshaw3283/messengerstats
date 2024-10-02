@@ -22,11 +22,14 @@ interface LoaderProps {
   src: string;
 }
 
-const imageLoader = ({ src }: LoaderProps): string => {
+{
+  /*const imageLoader = ({ src }: LoaderProps): string => {
   const uri = `http://localhost:3001/${src}`;
   console.log(uri);
   return uri;
 };
+*/
+}
 
 interface Reaction {
   reaction: string;
@@ -75,22 +78,28 @@ interface Content {
 }
 
 interface SelectedFile {
-  fileName: string;
+  name: string;
   content: Content;
+}
+
+interface Info {
+  participants?: Array<Participant>;
+  title?: string;
 }
 
 interface Props {
   selectedFiles: Array<SelectedFile>;
   fileMessages: Array<Message>;
+  info: Info;
 }
 
-const Lists: React.FC<Props> = ({ selectedFiles, fileMessages }) => {
+const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
   const { toast } = useToast();
   const [selectedValue, setSelectedValue] = React.useState<number>(0);
   const div1Ref = React.useRef<any>(null);
   const div2Ref = React.useRef<any>(null);
   const div3Ref = React.useRef<any>(null);
-
+  console.log(info);
   const copyToClipboard = async (text: any) => {
     try {
       navigator.clipboard.writeText(
@@ -113,9 +122,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages }) => {
     setSelectedValue(parseInt(value));
   };
 
-  const participants = selectedFiles
-    ? selectedFiles[0]?.content?.participants
-    : [];
+  const participants = info.participants;
 
   const messageCounts = participants?.map((participant) => {
     const count = fileMessages?.filter(
@@ -272,22 +279,24 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages }) => {
     return sortedMessages.slice(0, 3);
   };
 
+  const topThreeReacted = {
+    photos: findTopThreeMostReactedPerType(fileMessages, "photo"),
+    videos: findTopThreeMostReactedPerType(fileMessages, "video"),
+    audios: findTopThreeMostReactedPerType(fileMessages, "audio"),
+  };
+
+  const findFileInSelectedFiles = (message: Audio | Video | Photo | any) => {
+    return selectedFiles.find((file) => file.name === message.uri);
+  };
+
   const mostReactedMessage = findTopThreeMostReactedPerType(
     fileMessages,
     "text"
   );
-  const mostReactedPhoto = findTopThreeMostReactedPerType(
-    fileMessages,
-    "photo"
-  );
-  const mostReactedVideo = findTopThreeMostReactedPerType(
-    fileMessages,
-    "video"
-  );
-  const mostReactedAudio = findTopThreeMostReactedPerType(
-    fileMessages,
-    "audio"
-  );
+
+  const mostReactedPhotos = topThreeReacted.photos.map(findFileInSelectedFiles);
+  const mostReactedVideos = topThreeReacted.videos.map(findFileInSelectedFiles);
+  const mostReactedAudios = topThreeReacted.audios.map(findFileInSelectedFiles);
 
   return (
     <div className="pt-10 pb-10">
@@ -295,7 +304,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages }) => {
         <section className="bg-neutral-100 p-3 rounded-lg mt-2 border-2 border-blue-700">
           <div className="bg-blue-700 rounded-sm p-4  z-10">
             <h1 className="lg:text-5xl text-4xl font-semibold p-3 rounded-lg">
-              {selectedFiles[0]?.content?.title}
+              {info.title}
             </h1>
           </div>
         </section>
@@ -366,7 +375,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages }) => {
                   </span>
 
                   <div className="py-3 ">
-                    {sortedCount.map((person, index) => (
+                    {sortedCount?.map((person, index) => (
                       <div
                         key={index}
                         className={
@@ -544,6 +553,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages }) => {
               </div>
             </div>
           </TabsContent>
+
           <TabsContent value="most">
             <div id="message"></div>
 
@@ -559,34 +569,35 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages }) => {
                 className="w-full max-w-lg ml-10 "
               >
                 <CarouselContent className="-ml-1">
-                  {mostReactedPhoto?.map((photo, index) => (
-                    <CarouselItem key={index}>
-                      <div className="pb-1">
-                        <p className="font-semibold">
-                          {(index === 0 && "Most reacted image") ||
-                            (index === 1 && "2nd most reacted image") ||
-                            (index === 2 && "3rd most reacted image")}
-                        </p>
-                        <div className="flex-row flex justify-between">
-                          <p>{`Sent by ${photo.sender_name}`}</p>
-                          <div className="w-16 h-6 bg-white rounded-full flex ">
-                            <p className="text-blue-700 pl-1 font-semibold">
-                              {photo.reactions.length}
+                  {mostReactedPhotos?.map(
+                    (photo, index) =>
+                      photo && (
+                        <CarouselItem key={index}>
+                          <div className="pb-1">
+                            <p className="font-semibold">
+                              {(index === 0 && "Most reacted image") ||
+                                (index === 1 && "2nd most reacted image") ||
+                                (index === 2 && "3rd most reacted image")}
                             </p>
+                            <div className="flex-row flex justify-between">
+                              <p>{`Sent by ${photo.sender_name}`}</p>
+                              <div className="w-16 h-6 bg-white rounded-full flex ">
+                                <p className="text-blue-700 pl-1 font-semibold">
+                                  {photo.reactions.length}
+                                </p>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                      <Image
-                        loader={imageLoader}
-                        src={`uploads/${timestamp}/${photo.photos[0].uri.slice(
-                          photo.photos[0].uri.lastIndexOf("photos/")
-                        )} `}
-                        alt="most reacted photo"
-                        width={500}
-                        height={500}
-                      />
-                    </CarouselItem>
-                  ))}
+                          <Image
+                            // loader={imageLoader}
+                            src={URL.createObjectURL(photo)}
+                            alt="most reacted photo"
+                            width={500}
+                            height={500}
+                          />
+                        </CarouselItem>
+                      )
+                  )}
                 </CarouselContent>
                 <CarouselPrevious className="text-blue-700" />
                 <CarouselNext className="text-blue-700" />

@@ -153,7 +153,6 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
               path.includes(data.convoName)
             ) {
               convoFiles.push(file);
-              console.log(`Found matching file: ${file.name} at path: ${path}`);
             }
           });
         });

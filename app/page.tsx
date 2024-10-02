@@ -5,7 +5,7 @@ import React from "react";
 import Lists from "@/components/Lists";
 import Demo from "@/components/Demo";
 import Request from "@/components/Request";
-import { time } from "console";
+import { read } from "fs";
 
 interface Reaction {
   reaction: string;
@@ -35,14 +35,21 @@ interface Content {
   title: string;
 }
 
+interface Info {
+  participants?: Array<Participant>;
+  title?: string;
+}
+
 interface SelectedFile {
-  fileName: string;
+  name: string;
   content: Content;
 }
 
 export default function Home() {
   const [selectedFiles, setSelectedFiles] = React.useState<SelectedFile[]>([]);
   const [fileMessages, setFileMessages] = React.useState<Message[]>([]);
+  const [populated, setPopulated] = React.useState(false);
+  const [info, setInfo] = React.useState<Info>({});
 
   const handleFilesUploaded = (files: any[]) => {
     setSelectedFiles(files);
@@ -54,12 +61,60 @@ export default function Home() {
   const spreadMessages = async () => {
     if (selectedFiles.length > 0) {
       try {
-        let totalMessages = [];
-        for (const file of selectedFiles) {
-          const fileContents: Array<Message> = file.content.messages;
-          totalMessages.push(...fileContents);
+        const messagePromises = selectedFiles.map(async (file) => {
+          const fileName = file?.name.toLowerCase();
+
+          // Check if it's a JSON file
+          if (fileName.endsWith(".json")) {
+            const reader = new FileReader();
+
+            // Return a promise to read the file
+            const fileContent = await new Promise<Content>(
+              (resolve, reject) => {
+                reader.onload = (event) => {
+                  try {
+                    const parsedContent: Content = JSON.parse(
+                      event.target?.result as string
+                    );
+                    resolve(parsedContent);
+                  } catch (error) {
+                    reject(error);
+                  }
+                };
+                reader.onerror = reject;
+                reader.readAsText(file as any);
+              }
+            );
+
+            console.log("fileContent:", fileContent);
+
+            setInfo({
+              participants: fileContent.participants,
+              title: fileContent.title,
+            });
+            return fileContent.messages || [];
+          }
+
+          return []; // If not a JSON file, return an empty array
+        });
+
+        // Wait for all file read promises to resolve concurrently
+        const allMessages = await Promise.all(messagePromises);
+
+        // Flatten the array of arrays and update the state
+        const totalMessages = allMessages.flat();
+        setFileMessages(totalMessages);
+
+        if (totalMessages.length > 0) {
+          setPopulated(true);
+        } else {
+          console.log("fileMessages not populated correctly");
         }
-        setFileMessages((prev) => [...prev, ...totalMessages]);
+
+        console.log(
+          "Processed JSON files and updated messages:",
+          totalMessages
+        );
       } catch (error) {
         console.error("Error spreading messages:", error);
       }
@@ -71,6 +126,7 @@ export default function Home() {
       spreadMessages();
 
       console.log("selectedFiles", selectedFiles);
+      console.log("info", info);
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -153,9 +209,13 @@ export default function Home() {
         </div>
       </div>
 
-      {selectedFiles.length ? (
+      {populated ? (
         <div>
-          <Lists selectedFiles={selectedFiles} fileMessages={fileMessages} />
+          <Lists
+            selectedFiles={selectedFiles}
+            fileMessages={fileMessages}
+            info={info}
+          />
         </div>
       ) : (
         <div>
