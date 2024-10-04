@@ -4,7 +4,23 @@ import Image from "next/image";
 const Tutorial = () => {
   return (
     <div className="pt-10 flex  items-center flex-col bg-slate-950 text-white">
-      <div className="border border-slate-300 w-full mb-6"></div>
+      <a href="/" className="absolute left-0 top-0 p-2 cursor-pointer">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+          className="size-6 left-0"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"
+          />
+        </svg>
+      </a>
+
       <div className="bg-white p-2 w-fit items-center rounded-lg flex border-2 border-blue-700">
         <div className=" bg-blue-700 rounded-lg p-3 h-fit z-10">
           <h1 className="flex justify-center self-center text-4xl font-semibold ">
@@ -92,66 +108,14 @@ const Tutorial = () => {
             Open the zip folder, it should be named something like :
             facebook-your-name19375
           </p>
-          <p className="pt-2">Follow this order</p>
-          <div className="flex flex-row">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-6 h-6 "
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-              />
-            </svg>
-            <p className="font-semibold pl-1">your_facebook_activity</p>
-          </div>
-          <div className="flex flex-row pl-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-6 h-6 "
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-              />
-            </svg>
-            <p className="font-semibold pl-1">messages</p>
-          </div>
-          <div className="flex flex-row pl-4">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-6 h-6 "
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-              />
-            </svg>
-            <p className="font-semibold pl-1">inbox</p>
-          </div>
-          <p>
-            Find the folder with the name of the conversation you want to see
-            the stats of, <strong>unzip it</strong> and put it on your desktop
+          <p className="pt-2">
+            When you open the ZIP file, the first folder should be{" "}
+            <strong>{`"your_facebook_activity"`}</strong>, select that on the
+            home page and enter the desired conversation name!
           </p>
-          <p className="py-3">
-            Then, click choose files at the top of this page and select that
-            folder - and there you go!
-          </p>
+          <a href="/" className="text-blue-700 underline py-1">
+            Go back to the home page
+          </a>
         </div>
       </div>
     </div>

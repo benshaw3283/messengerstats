@@ -186,9 +186,17 @@ export default function Home() {
               </div>
               <div className="p-2 pt-1 pb-0 text-slate-500">
                 <p>
-                  Drop the zip file in the area below and enter the name of the
+                  <strong>1.</strong> Open the downloaded ZIP file
+                </p>
+
+                <p>
+                  <strong>2.</strong> Select or drop the{" "}
+                  <strong className="text-white">{`"your_facebook_activity"`}</strong>{" "}
+                  folder in the area below and enter the name of the
                   conversation you want to see the stats of.
                 </p>
+
+                <p></p>
               </div>
 
               <div className="flex mt-20 rounded-tr-lg p-2 bg-blue-700 ">

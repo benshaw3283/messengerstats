@@ -88,7 +88,7 @@ interface Info {
 }
 
 interface Props {
-  selectedFiles: Array<SelectedFile>;
+  selectedFiles: Array<SelectedFile | any>;
   fileMessages: Array<Message>;
   info: Info;
 }
@@ -99,7 +99,9 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
   const div1Ref = React.useRef<any>(null);
   const div2Ref = React.useRef<any>(null);
   const div3Ref = React.useRef<any>(null);
-  console.log(info);
+
+  console.log("selectedFiles", selectedFiles);
+
   const copyToClipboard = async (text: any) => {
     try {
       navigator.clipboard.writeText(
@@ -286,7 +288,39 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
   };
 
   const findFileInSelectedFiles = (message: Audio | Video | Photo | any) => {
-    return selectedFiles.find((file) => file.name === message.uri);
+    const file = selectedFiles.find((file) => {
+      if (message.photos && message.photos.length > 0) {
+        const photoUri = message.photos[0]?.uri;
+        const photoFileName = photoUri?.slice(photoUri.lastIndexOf("/") + 1);
+        return file.name === photoFileName;
+      }
+      if (message.videos && message.videos.length > 0) {
+        const videoUri = message.videos[0]?.uri;
+        const videoFileName = videoUri?.slice(videoUri.lastIndexOf("/") + 1);
+        return file.name === videoFileName;
+      }
+      if (message.audio && message.audio.length > 0) {
+        const audioUri = message.audio[0]?.uri;
+        const audioFileName = audioUri?.slice(audioUri.lastIndexOf("/") + 1);
+        return file.name === audioFileName;
+      }
+      return false;
+    });
+
+    console.log("file:", file);
+    console.log("message:", message);
+
+    if (!file) {
+      console.error(
+        `File not found for message with filename: ${
+          message?.photos?.[0]?.uri ||
+          message?.videos?.[0]?.uri ||
+          message?.audio?.[0]?.uri
+        }`
+      );
+    }
+
+    return { message, file: file || null };
   };
 
   const mostReactedMessage = findTopThreeMostReactedPerType(
@@ -570,8 +604,8 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
               >
                 <CarouselContent className="-ml-1">
                   {mostReactedPhotos?.map(
-                    (photo, index) =>
-                      photo && (
+                    ({ file, message }, index) =>
+                      file && (
                         <CarouselItem key={index}>
                           <div className="pb-1">
                             <p className="font-semibold">
@@ -580,21 +614,25 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
                                 (index === 2 && "3rd most reacted image")}
                             </p>
                             <div className="flex-row flex justify-between">
-                              <p>{`Sent by ${photo.sender_name}`}</p>
+                              <p>{`Sent by ${message.sender_name}`}</p>
                               <div className="w-16 h-6 bg-white rounded-full flex ">
                                 <p className="text-blue-700 pl-1 font-semibold">
-                                  {photo.reactions.length}
+                                  {message.reactions.length}
                                 </p>
                               </div>
                             </div>
                           </div>
-                          <Image
-                            // loader={imageLoader}
-                            src={URL.createObjectURL(photo)}
-                            alt="most reacted photo"
-                            width={500}
-                            height={500}
-                          />
+                          {message.photos ? (
+                            <Image
+                              // loader={imageLoader}
+                              src={URL.createObjectURL(file)}
+                              alt="most reacted photo"
+                              width={500}
+                              height={500}
+                            />
+                          ) : (
+                            <p>Image not found</p>
+                          )}
                         </CarouselItem>
                       )
                   )}
@@ -615,45 +653,49 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
                 className="w-full max-w-lg ml-10 "
               >
                 <CarouselContent className="-ml-1">
-                  {mostReactedVideo?.map((video, index) => (
-                    <CarouselItem key={index}>
-                      <div className="pb-1">
-                        <p className="font-semibold">
-                          {(index === 0 && "Most reacted video") ||
-                            (index === 1 && "2nd most reacted video") ||
-                            (index === 2 && "3rd most reacted video")}
-                        </p>
-                        <div className="flex-row flex justify-between">
-                          <p>{`Sent by ${video.sender_name}`}</p>
-                          <div className="w-16 h-6 bg-white rounded-full flex ">
-                            <p className="text-blue-700 pl-1 font-semibold">
-                              {video.reactions.length}
+                  {mostReactedVideos?.map(
+                    ({ file, message }, index) =>
+                      file && (
+                        <CarouselItem key={index}>
+                          <div className="pb-1">
+                            <p className="font-semibold">
+                              {(index === 0 && "Most reacted video") ||
+                                (index === 1 && "2nd most reacted video") ||
+                                (index === 2 && "3rd most reacted video")}
                             </p>
+                            <div className="flex-row flex justify-between">
+                              <p>{`Sent by ${message.sender_name}`}</p>
+                              <div className="w-16 h-6 bg-white rounded-full flex ">
+                                <p className="text-blue-700 pl-1 font-semibold">
+                                  {message.reactions.length}
+                                </p>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                      <div className="flex justify-center items-center">
-                        {" "}
-                        <video
-                          width="320"
-                          height="240"
-                          controls
-                          preload="auto"
-                          crossOrigin="anonymous"
-                          playsInline
-                          className="rounded-lg shadow-md"
-                        >
-                          <source
-                            src={`http://34.129.91.231:3001/uploads/${timestamp}/${video.videos[0].uri.slice(
-                              video.videos[0].uri.lastIndexOf("videos/")
-                            )}`}
-                            type="video/mp4"
-                          />
-                          Videos not supported
-                        </video>
-                      </div>
-                    </CarouselItem>
-                  ))}
+                          <div className="flex justify-center items-center">
+                            {message.videos ? (
+                              <video
+                                width="320"
+                                height="240"
+                                controls
+                                preload="auto"
+                                crossOrigin="anonymous"
+                                playsInline
+                                className="rounded-lg shadow-md"
+                              >
+                                <source
+                                  src={URL.createObjectURL(file)}
+                                  type="video/mp4"
+                                />
+                                Videos not supported
+                              </video>
+                            ) : (
+                              <p>Video not found</p>
+                            )}
+                          </div>
+                        </CarouselItem>
+                      )
+                  )}
                 </CarouselContent>
                 <CarouselPrevious className="text-blue-700" />
                 <CarouselNext className="text-blue-700" />
@@ -672,7 +714,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
                 className="w-full max-w-lg ml-10 "
               >
                 <CarouselContent className="-ml-1">
-                  {mostReactedAudio?.map((audio, index) => (
+                  {mostReactedAudios?.map(({ file, message }, index) => (
                     <CarouselItem key={index}>
                       <div className="pb-1">
                         <p className="font-semibold">
@@ -681,21 +723,23 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
                             (index === 2 && "3rd most reacted audio")}
                         </p>
                         <div className="flex-row flex justify-between">
-                          <p>{`Sent by ${audio.sender_name}`}</p>
+                          <p>{`Sent by ${message.sender_name}`}</p>
                           <div className="w-16 h-6 bg-white rounded-full flex ">
                             <p className="text-blue-700 pl-1 font-semibold">
-                              {audio.reactions.length}
+                              {message.reactions.length}
                             </p>
                           </div>
                         </div>
                       </div>
                       <div className="flex justify-center items-center">
-                        <audio
-                          src={`http://34.129.91.231:3001/uploads/${timestamp}/${audio.audio_files[0].uri.slice(
-                            audio.audio_files[0].uri.lastIndexOf("audio/")
-                          )}`}
-                          controls
-                        ></audio>
+                        {message.audio ? (
+                          <audio
+                            src={URL.createObjectURL(file)}
+                            controls
+                          ></audio>
+                        ) : (
+                          <p>Audio not found</p>
+                        )}
                       </div>
                     </CarouselItem>
                   ))}

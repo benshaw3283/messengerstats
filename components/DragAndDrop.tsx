@@ -64,7 +64,7 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
           dirReader.readEntries(async (entries: any[]) => {
             for (const entry of entries) {
               await traverseDirectory(entry, path + item.name + "/");
-              console.log(path);
+              //console.log(path);
             }
             resolve();
           });
@@ -98,7 +98,7 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
     const files = e.target.files;
     if (files) {
       const allFiles = Array.from(files);
-      console.log("Files uploaded:", allFiles);
+      //console.log("Files uploaded:", allFiles);
 
       form.setValue("file", allFiles); // Pass the entire file array
       form.trigger("file");
@@ -128,7 +128,7 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
     if (chunk.length > 0) {
       chunks.push(chunk);
     }
-    console.log("chunks", chunks);
+    //console.log("chunks", chunks);
     return chunks;
   };
 
@@ -137,11 +137,11 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
       const fileList = data.file;
       if (fileList && fileList.length > 0) {
         const allFiles = Array.from(fileList as FileList);
-        console.log("Files before chunking:", allFiles);
+        // console.log("Files before chunking:", allFiles);
 
         // Split the uploaded folder into chunks (if necessary)
         const chunks = splitIntoChunks(allFiles, 2 * 1024 * 1024 * 1024); // 2GB chunks
-        console.log(`Total Chunks Created: ${chunks.length}`);
+        // console.log(`Total Chunks Created: ${chunks.length}`);
 
         // Traverse each chunk to find the convoName folder
         const convoFiles: File[] = [];
