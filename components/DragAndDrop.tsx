@@ -266,7 +266,7 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
           />
           <button
             type="submit"
-            className="bg-slate-200 text-xl disabled:cursor-not-allowed hover:border-white hover:border-2 hover:bg-blue-700 hover:text-white text-blue-700 w-fit justify-self-center rounded-lg p-2 font-semibold font-Switzer tracking-wide h-fit ml-2 self-end px-3"
+            className="bg-slate-200 text-xl disabled:cursor-not-allowed hover:shadow-inner hover:shadow-white hover:bg-blue-700 hover:text-white text-blue-700  justify-self-center rounded-lg p-2 font-semibold font-Switzer tracking-wide h-fit ml-2 self-end px-3"
             disabled={begun}
           >
             submit
