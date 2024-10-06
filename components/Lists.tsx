@@ -1,4 +1,5 @@
 "use client";
+
 import React from "react";
 import {
   Select,
@@ -93,9 +94,16 @@ interface Props {
   info: Info;
 }
 
+interface NullFiles {
+  photos: number;
+  videos: number;
+  audio: number;
+}
+
 const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
   const { toast } = useToast();
   const [selectedValue, setSelectedValue] = React.useState<number>(0);
+
   const div1Ref = React.useRef<any>(null);
   const div2Ref = React.useRef<any>(null);
   const div3Ref = React.useRef<any>(null);
@@ -278,7 +286,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
     );
 
     // Return the top 3 most reacted messages
-    return sortedMessages.slice(0, 3);
+    return sortedMessages.slice(0, 6);
   };
 
   const topThreeReacted = {
@@ -299,11 +307,12 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
         const videoFileName = videoUri?.slice(videoUri.lastIndexOf("/") + 1);
         return file.name === videoFileName;
       }
-      if (message.audio && message.audio.length > 0) {
-        const audioUri = message.audio[0]?.uri;
+      if (message.audio_files && message.audio_files.length > 0) {
+        const audioUri = message.audio_files[0]?.uri;
         const audioFileName = audioUri?.slice(audioUri.lastIndexOf("/") + 1);
         return file.name === audioFileName;
       }
+
       return false;
     });
 
@@ -315,7 +324,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
         `File not found for message with filename: ${
           message?.photos?.[0]?.uri ||
           message?.videos?.[0]?.uri ||
-          message?.audio?.[0]?.uri
+          message?.audio_files?.[0]?.uri
         }`
       );
     }
@@ -622,7 +631,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
                               </div>
                             </div>
                           </div>
-                          {message.photos ? (
+                          {file ? (
                             <Image
                               // loader={imageLoader}
                               src={URL.createObjectURL(file)}
@@ -673,7 +682,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
                             </div>
                           </div>
                           <div className="flex justify-center items-center">
-                            {message.videos ? (
+                            {file ? (
                               <video
                                 width="320"
                                 height="240"
@@ -732,7 +741,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
                         </div>
                       </div>
                       <div className="flex justify-center items-center">
-                        {message.audio ? (
+                        {file ? (
                           <audio
                             src={URL.createObjectURL(file)}
                             controls

@@ -1,11 +1,12 @@
 "use client";
-
 import ZipFileDropzone from "@/components/DragAndDrop";
-import React from "react";
+import React, { Suspense } from "react";
 import Lists from "@/components/Lists";
-import Demo from "@/components/Demo";
 import Request from "@/components/Request";
 import { motion } from "framer-motion";
+
+// Lazy load the Demo component
+const Demo = React.lazy(() => import("@/components/Demo"));
 
 interface Reaction {
   reaction: string;
@@ -57,7 +58,6 @@ export default function Home() {
 
     console.log("Files received from ZipFileDropzone:", files);
   };
-  // let folderName = selectedFiles[0];
 
   const spreadMessages = async () => {
     if (selectedFiles.length > 0) {
@@ -132,7 +132,7 @@ export default function Home() {
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFiles]);
+  }, [selectedFiles, spreadMessages]);
 
   return (
     <main className="bg-slate-950 text-white min-h-screen max-w-screen">
@@ -245,7 +245,9 @@ export default function Home() {
                 </h1>
               </div>
               <div className="p-10">
-                <Demo />
+                <Suspense fallback={<div>Loading Demo...</div>}>
+                  <Demo />
+                </Suspense>
               </div>
             </div>
           </div>
@@ -260,8 +262,8 @@ export default function Home() {
         />
       ) : (
         <div>
-          <p className="flex text-lg font-semibold justify-center pt-4">
-            Upload ZIP file to see stats
+          <p className="flex text-lg font-semibold justify-center pb-2">
+            Upload folder to see stats
           </p>
         </div>
       )}

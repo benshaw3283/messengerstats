@@ -34,6 +34,7 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       convoName: "",
+      file: [],
     },
   });
 
@@ -177,7 +178,7 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
 
   return (
     <div>
-      <p>{fileName ? `Selected: ${fileName.name}` : "No file selected"}</p>
+      <p>{fileName ? `Selected: ` : "No file selected"}</p>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -213,7 +214,7 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
                       htmlFor="folder-upload"
                       className="cursor-pointer h-full place-items-center justify-center flex text-white font-bold"
                     >
-                      {fileName ? (
+                      {fileName.length > 0 ? (
                         <div className="flex-col flex items-center gap-2">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
