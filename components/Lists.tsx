@@ -1,5 +1,4 @@
 "use client";
-
 import React from "react";
 import {
   Select,
@@ -18,19 +17,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-
-interface LoaderProps {
-  src: string;
-}
-
-{
-  /*const imageLoader = ({ src }: LoaderProps): string => {
-  const uri = `http://localhost:3001/${src}`;
-  console.log(uri);
-  return uri;
-};
-*/
-}
 
 interface Reaction {
   reaction: string;

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, DragEvent, ChangeEvent } from "react";
+import React, { useState, DragEvent, ChangeEvent, useCallback } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -21,7 +21,7 @@ interface FolderDropzoneProps {
 
 const formSchema = z.object({
   convoName: z.string().min(2, { message: "Must be over 2 characters" }),
-  file: z.any(),
+  file: z.array(z.instanceof(File)), // Correctly define the file field as an array of File objects
 });
 
 const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
@@ -95,16 +95,19 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
     await readItems();
   };
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files) {
-      const allFiles = Array.from(files);
-      //console.log("Files uploaded:", allFiles);
+  const handleFileChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (files) {
+        const allFiles = Array.from(files);
+        //console.log("Files uploaded:", allFiles);
 
-      form.setValue("file", allFiles); // Pass the entire file array
-      form.trigger("file");
-    }
-  };
+        form.setValue("file", allFiles); // Pass the entire file array
+        form.trigger("file");
+      }
+    },
+    [form]
+  );
 
   const splitIntoChunks = (files: File[], maxSize: number) => {
     console.log(maxSize);
@@ -137,7 +140,7 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
     try {
       const fileList = data.file;
       if (fileList && fileList.length > 0) {
-        const allFiles = Array.from(fileList as FileList);
+        const allFiles = Array.from(fileList);
         // console.log("Files before chunking:", allFiles);
 
         // Split the uploaded folder into chunks (if necessary)
@@ -187,7 +190,7 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
           <FormField
             control={form.control}
             name="file"
-            render={({ field }) => {
+            render={({ field, fieldState, formState }) => {
               return (
                 <FormItem>
                   <div
