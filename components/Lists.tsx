@@ -341,6 +341,31 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
   const mostReactedVideos = topThreeReacted.videos.map(findFileInSelectedFiles);
   const mostReactedAudios = topThreeReacted.audios.map(findFileInSelectedFiles);
 
+  // Cache object URLs for files
+  const cachedPhotos = React.useMemo(
+    () =>
+      mostReactedPhotos.map(({ file }) =>
+        file ? URL.createObjectURL(file) : null
+      ),
+    [mostReactedPhotos]
+  );
+
+  const cachedVideos = React.useMemo(
+    () =>
+      mostReactedVideos.map(({ file }) =>
+        file ? URL.createObjectURL(file) : null
+      ),
+    [mostReactedVideos]
+  );
+
+  const cachedAudios = React.useMemo(
+    () =>
+      mostReactedAudios.map(({ file }) =>
+        file ? URL.createObjectURL(file) : null
+      ),
+    [mostReactedAudios]
+  );
+
   return (
     <div className="pt-10 pb-10">
       <div className="flex flex-col items-center ">
@@ -633,8 +658,8 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
                           </div>
                           {file ? (
                             <Image
-                              // loader={imageLoader}
-                              src={URL.createObjectURL(file)}
+                              loading="lazy"
+                              src={cachedPhotos[index] || ""}
                               alt="most reacted photo"
                               width={500}
                               height={500}
@@ -693,7 +718,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
                                 className="rounded-lg shadow-md"
                               >
                                 <source
-                                  src={URL.createObjectURL(file)}
+                                  src={cachedVideos[index] || ""}
                                   type="video/mp4"
                                 />
                                 Videos not supported
@@ -743,7 +768,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
                       <div className="flex justify-center items-center">
                         {file ? (
                           <audio
-                            src={URL.createObjectURL(file)}
+                            src={cachedAudios[index] || ""}
                             controls
                           ></audio>
                         ) : (

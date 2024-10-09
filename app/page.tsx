@@ -53,11 +53,10 @@ export default function Home() {
   const [info, setInfo] = React.useState<Info>({});
   const [show, setShow] = React.useState<boolean>(false);
 
-  const handleFilesUploaded = (files: any[]) => {
+  const handleFilesUploaded = React.useCallback((files: any[]) => {
     setSelectedFiles(files);
-
     console.log("Files received from ZipFileDropzone:", files);
-  };
+  }, []);
 
   const spreadMessages = async () => {
     if (selectedFiles.length > 0) {
@@ -126,13 +125,39 @@ export default function Home() {
   React.useEffect(() => {
     if (selectedFiles.length > 0) {
       spreadMessages();
-
       console.log("selectedFiles", selectedFiles);
       console.log("info", info);
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFiles, spreadMessages]);
+  }, [selectedFiles]);
+
+  // Memoize motion.div properties
+  const motionProps = React.useMemo(
+    () => ({
+      initial: { scaleY: 1, height: "auto" },
+      animate: { scaleY: show ? 0 : 1, height: show ? 0 : "auto" },
+      transition: { duration: 0.5, ease: "easeInOut" },
+      style: {
+        transformOrigin: "top",
+        overflow: "hidden",
+      },
+    }),
+    [show]
+  );
+
+  // Memoize Lists props to prevent unnecessary re-renders
+  const listsProps = React.useMemo(
+    () => ({
+      selectedFiles,
+      fileMessages,
+      info,
+    }),
+    [selectedFiles, fileMessages, info]
+  );
+
+  // Wrap Lists component with React.memo
+  const MemoizedLists = React.memo(Lists);
 
   return (
     <main className="bg-slate-950 text-white min-h-screen max-w-screen">
@@ -163,15 +188,7 @@ export default function Home() {
         Messenger Stats
       </h1>
 
-      <motion.div
-        initial={{ scaleY: 1, height: "auto" }}
-        animate={{ scaleY: show ? 0 : 1, height: show ? 0 : "auto" }}
-        transition={{ duration: 0.5, ease: "easeInOut" }}
-        style={{
-          transformOrigin: "top",
-          overflow: "hidden",
-        }}
-      >
+      <motion.div {...motionProps}>
         <div className="flex flex-col ">
           <div className="flex flex-row w-full gap-[500px] md:gap-[300px]">
             <div className=" flex flex-col gap-4 pl-10">
@@ -255,11 +272,7 @@ export default function Home() {
       </motion.div>
 
       {populated ? (
-        <Lists
-          selectedFiles={selectedFiles}
-          fileMessages={fileMessages}
-          info={info}
-        />
+        <MemoizedLists {...listsProps} />
       ) : (
         <div>
           <p className="flex text-lg font-semibold justify-center pb-2">
