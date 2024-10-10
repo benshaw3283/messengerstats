@@ -4,7 +4,6 @@ import React, { Suspense } from "react";
 import Lists from "@/components/Lists";
 import Request from "@/components/Request";
 import { motion } from "framer-motion";
-import whyDidYouRender from "@welldone-software/why-did-you-render";
 // Lazy load the Demo component
 const Demo = React.lazy(() => import("@/components/Demo"));
 
@@ -45,8 +44,6 @@ interface SelectedFile {
   name: string;
   content: Content;
 }
-
-whyDidYouRender(React);
 
 export default function Home() {
   const [selectedFiles, setSelectedFiles] = React.useState<SelectedFile[]>([]);

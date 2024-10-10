@@ -1,6 +1,5 @@
 "use client";
 import React from "react";
-import whyDidYouRender from "@welldone-software/why-did-you-render";
 import {
   Select,
   SelectContent,
@@ -86,8 +85,6 @@ interface NullFiles {
   videos: number;
   audio: number;
 }
-
-whyDidYouRender(React);
 
 const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
   const { toast } = useToast();
