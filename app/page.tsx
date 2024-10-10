@@ -4,7 +4,7 @@ import React, { Suspense } from "react";
 import Lists from "@/components/Lists";
 import Request from "@/components/Request";
 import { motion } from "framer-motion";
-
+import whyDidYouRender from "@welldone-software/why-did-you-render";
 // Lazy load the Demo component
 const Demo = React.lazy(() => import("@/components/Demo"));
 
@@ -46,6 +46,8 @@ interface SelectedFile {
   content: Content;
 }
 
+whyDidYouRender(React);
+
 export default function Home() {
   const [selectedFiles, setSelectedFiles] = React.useState<SelectedFile[]>([]);
   const [fileMessages, setFileMessages] = React.useState<Message[]>([]);
@@ -61,14 +63,15 @@ export default function Home() {
   const spreadMessages = async () => {
     if (selectedFiles.length > 0) {
       try {
+        const updatedInfo: Info = {};
+        const allMessages: Message[] = [];
+
         const messagePromises = selectedFiles.map(async (file) => {
           const fileName = file?.name.toLowerCase();
 
-          // Check if it's a JSON file
           if (fileName.endsWith(".json")) {
             const reader = new FileReader();
 
-            // Return a promise to read the file
             const fileContent = await new Promise<Content>(
               (resolve, reject) => {
                 reader.onload = (event) => {
@@ -86,36 +89,32 @@ export default function Home() {
               }
             );
 
-            console.log("fileContent:", fileContent);
+            // Accumulate the information to avoid updating state multiple times
+            if (!updatedInfo.participants) {
+              updatedInfo.participants = fileContent.participants;
+            }
+            if (!updatedInfo.title) {
+              updatedInfo.title = fileContent.title;
+            }
 
-            setInfo({
-              participants: fileContent.participants,
-              title: fileContent.title,
-            });
-            return fileContent.messages || [];
+            allMessages.push(...(fileContent.messages || []));
           }
-
-          return []; // If not a JSON file, return an empty array
         });
 
-        // Wait for all file read promises to resolve concurrently
-        const allMessages = await Promise.all(messagePromises);
+        await Promise.all(messagePromises);
 
-        // Flatten the array of arrays and update the state
-        const totalMessages = allMessages.flat();
-        setFileMessages(totalMessages);
+        // Now, update state only once after all files are processed
+        setInfo(updatedInfo);
+        setFileMessages(allMessages);
 
-        if (totalMessages.length > 0) {
+        if (allMessages.length > 0) {
           setPopulated(true);
           setShow(true);
         } else {
           console.log("fileMessages not populated correctly");
         }
 
-        console.log(
-          "Processed JSON files and updated messages:",
-          totalMessages
-        );
+        console.log("Processed JSON files and updated messages:", allMessages);
       } catch (error) {
         console.error("Error spreading messages:", error);
       }
@@ -125,8 +124,6 @@ export default function Home() {
   React.useEffect(() => {
     if (selectedFiles.length > 0) {
       spreadMessages();
-      console.log("selectedFiles", selectedFiles);
-      console.log("info", info);
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, DragEvent, ChangeEvent, useCallback } from "react";
+import whyDidYouRender from "@welldone-software/why-did-you-render";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -23,6 +24,8 @@ const formSchema = z.object({
   convoName: z.string().min(2, { message: "Must be over 2 characters" }),
   file: z.array(z.instanceof(File)), // Correctly define the file field as an array of File objects
 });
+
+whyDidYouRender(React);
 
 const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
   const { toast } = useToast();

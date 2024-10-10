@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import whyDidYouRender from "@welldone-software/why-did-you-render";
 import {
   Select,
   SelectContent,
@@ -86,6 +87,8 @@ interface NullFiles {
   audio: number;
 }
 
+whyDidYouRender(React);
+
 const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
   const { toast } = useToast();
   const [selectedValue, setSelectedValue] = React.useState<number>(0);
@@ -93,8 +96,6 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
   const div1Ref = React.useRef<any>(null);
   const div2Ref = React.useRef<any>(null);
   const div3Ref = React.useRef<any>(null);
-
-  console.log("selectedFiles", selectedFiles);
 
   const copyToClipboard = async (text: any) => {
     try {
@@ -302,11 +303,8 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
       return false;
     });
 
-    console.log("file:", file);
-    console.log("message:", message);
-
-    if (!file) {
-      console.error(
+    /*   if (!file) {
+      console.log(
         `File not found for message with filename: ${
           message?.photos?.[0]?.uri ||
           message?.videos?.[0]?.uri ||
@@ -314,7 +312,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
         }`
       );
     }
-
+*/
     return { message, file: file || null };
   };
 
