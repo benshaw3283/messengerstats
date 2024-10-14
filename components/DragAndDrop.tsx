@@ -137,6 +137,7 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
   };
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    setBegun(true);
     try {
       const fileList = data.file;
       if (fileList && fileList.length > 0) {
@@ -169,6 +170,7 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
 
         // Send files for further processing
         onFilesUploaded(convoFiles);
+        setBegun(false);
       } else {
         throw new Error("No files found in the selected folder");
       }
@@ -196,7 +198,7 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
                   <div
                     className={`border-2 border-dashed border-white cursor-pointer rounded-lg ${
                       dragging ? "border-2 border-double" : ""
-                    } bg-blue-700 w-[250px] h-[102px]`}
+                    } bg-blue-700 lg:w-[250px] md:w-[250px] w-[150px] h-[102px]`}
                     onDragEnter={handleDragEnter}
                     onDragOver={(e) => e.preventDefault()}
                     onDragLeave={handleDragLeave}
@@ -252,14 +254,14 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
                 <FormItem className="pl-2 pt-1">
                   <FormLabel
                     htmlFor="convoName"
-                    className="text-lg text-white font-semibold"
+                    className="lg:text-lg md:text-lg text-base text-white font-semibold"
                   >
                     Conversation Name
                   </FormLabel>
                   <FormControl>
                     <Input
                       type="string"
-                      className="text-blue-700 w-56"
+                      className="text-blue-700 lg:w-56 md:w-56 w-32"
                       {...field}
                     />
                   </FormControl>

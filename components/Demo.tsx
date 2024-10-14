@@ -74,7 +74,7 @@ const Demo = () => {
   };
 
   return (
-    <div className="">
+    <div>
       <div className="flex flex-col items-center ">
         <section className="bg-neutral-100 p-3 rounded-lg mt-2 border-2 border-blue-700">
           <div className="bg-blue-700 rounded-sm p-4  z-10">
@@ -90,7 +90,7 @@ const Demo = () => {
           </div>
         </section>
         <div className="pt-3 pb-3">
-          <p className="text-lg font-semibold">{`Reacted to the most messages: John Snow (8,888 reactions)`}</p>
+          <p className="text-lg font-semibold">{`Reacted to the most messages: Jon Snow (8,888 reactions)`}</p>
         </div>
       </div>
 
@@ -241,7 +241,7 @@ const Demo = () => {
                           <p className="pr-2 flex ">{`2.`}</p>
                         </div>
                         <p className="pr-1 lg:pr-4 flex w-full pl-2 lg:pl-4">
-                          John Snow
+                          Jon Snow
                         </p>
                         <p className="font-bold text-xl lg:pl-6 pl-2">
                           {selectedValue === 1 && addComma(1423)}
@@ -506,7 +506,7 @@ export default Demo;
 
 const array = [
   { name: "John Pork", count: 9137 },
-  { name: "John Snow ", count: 8246 },
+  { name: "Jon Snow ", count: 8246 },
   { name: "Charlie Johnson", count: 7321 },
   { name: "Diana Clark", count: 5489 },
   { name: "Ethan White", count: 2643 },
