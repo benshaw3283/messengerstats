@@ -21,7 +21,7 @@ interface FolderDropzoneProps {
 
 const formSchema = z.object({
   convoName: z.string().min(2, { message: "Must be over 2 characters" }),
-  file: z.array(z.instanceof(File)), // Correctly define the file field as an array of File objects
+  file: z.array(z.instanceof(File)),
 });
 
 const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
@@ -29,71 +29,71 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
   const [dragging, setDragging] = useState<boolean>(false);
   const [status, setStatus] = useState<string>("");
   const [begun, setBegun] = useState<boolean>(false);
+  const folderName = React.useRef<string>("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    mode: "onSubmit",
     defaultValues: {
       convoName: "",
       file: [],
     },
   });
 
-  const handleDragEnter = (e: DragEvent) => {
+  const handleDragEnter = useCallback((e: DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragging(true);
-  };
+  }, []);
 
-  const handleDragLeave = (e: DragEvent) => {
+  const handleDragLeave = useCallback((e: DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragging(false);
-  };
+  }, []);
 
-  const handleDrop = async (e: DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragging(false);
+  const handleDrop = useCallback(
+    async (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDragging(false);
 
-    const items = e.dataTransfer.items;
-    const files: File[] = [];
+      const items = e.dataTransfer.items;
+      const files: File[] = [];
 
-    const traverseDirectory = (item: any, path: string): Promise<void> => {
-      return new Promise<void>((resolve) => {
+      const traverseDirectory = async (item: any, path: string) => {
         if (item.isDirectory) {
           const dirReader = item.createReader();
-          dirReader.readEntries(async (entries: any[]) => {
-            for (const entry of entries) {
-              await traverseDirectory(entry, path + item.name + "/");
-              //console.log(path);
-            }
-            resolve();
+          const entries = await new Promise<any[]>((resolve) => {
+            dirReader.readEntries(resolve);
           });
+
+          for (const entry of entries) {
+            await traverseDirectory(entry, path + item.name + "/");
+          }
         } else if (item.isFile) {
-          item.file((file: File) => {
-            // The webkitRelativePath is already populated, so no need to set it manually
-            files.push(file);
-            resolve();
-          });
+          const file = await new Promise<File>((resolve) => item.file(resolve));
+          files.push(file);
         }
-      });
-    };
+      };
 
-    const readItems = async () => {
-      const promises = [];
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i].webkitGetAsEntry();
-        if (item) {
-          promises.push(traverseDirectory(item, ""));
+      const readItems = async () => {
+        const promises = [];
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i].webkitGetAsEntry();
+          if (item) {
+            promises.push(traverseDirectory(item, ""));
+          }
         }
-      }
-      await Promise.all(promises);
-      form.setValue("file", files); // Set the file array in the form
-      form.trigger("file"); // Trigger validation or any side effects on change
-    };
+        await Promise.all(promises);
+        form.setValue("file", files); // Set file array in form
+        form.trigger("file"); // Trigger validation or side effects on change
+      };
 
-    await readItems();
-  };
+      await readItems();
+    },
+    [form]
+  );
 
   const handleFileChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
@@ -101,7 +101,7 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
       if (files) {
         const allFiles = Array.from(files);
         //console.log("Files uploaded:", allFiles);
-
+        folderName.current = allFiles[0]?.webkitRelativePath.split("/")[0];
         form.setValue("file", allFiles); // Pass the entire file array
         form.trigger("file");
       }
@@ -138,6 +138,17 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setBegun(true);
+
+    if (folderName.current !== "your_facebook_activity") {
+      toast({
+        title: "Wrong folder uploaded!",
+        description:
+          "Open the ZIP file and upload the ( your_facebook_activity ) folder",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const fileList = data.file;
       if (fileList && fileList.length > 0) {
@@ -179,11 +190,13 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
     }
   };
 
-  const fileName = form.getValues("file");
-
   return (
     <div>
-      <p>{fileName ? `Selected: ` : "No file selected"}</p>
+      <p>
+        {folderName.current?.length > 0
+          ? `Selected: ${folderName.current} `
+          : "No file selected"}
+      </p>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -210,7 +223,7 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
                         // @ts-ignore
                         webkitdirectory="true"
                         multiple
-                        className="opacity-0 w-[250px] h-[80px] absolute cursor-pointer"
+                        className="opacity-0 lg:w-[250px] w-[150px] h-[80px] absolute cursor-pointer"
                         onChange={handleFileChange}
                       />
                     </FormControl>
@@ -219,7 +232,7 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
                       htmlFor="folder-upload"
                       className="cursor-pointer h-full place-items-center justify-center flex text-white font-bold"
                     >
-                      {fileName.length > 0 ? (
+                      {folderName.current?.length > 0 ? (
                         <div className="flex-col flex items-center gap-2">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -238,7 +251,7 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
                           <p className="text-white">Files Selected</p>
                         </div>
                       ) : (
-                        "Drag and drop or select"
+                        <p className="pl-4">Drag and drop or select</p>
                       )}
                     </FormLabel>
                   </div>

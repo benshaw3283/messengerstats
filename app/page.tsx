@@ -1,11 +1,11 @@
 "use client";
 import ZipFileDropzone from "@/components/DragAndDrop";
-import React, { Suspense } from "react";
+import React, { Suspense, memo } from "react";
 import Lists from "@/components/Lists";
 import Request from "@/components/Request";
 import { motion } from "framer-motion";
-// Lazy load the Demo component
-const Demo = React.lazy(() => import("@/components/Demo"));
+
+const Demo = memo(React.lazy(() => import("@/components/Demo")));
 import { useQuery } from "@tanstack/react-query";
 import { create } from "zustand";
 
@@ -13,12 +13,10 @@ interface StoreState {
   selectedFiles: SelectedFile[];
   fileMessages: Message[];
   info: Info;
-  populated: boolean;
   show: boolean;
   setSelectedFiles: (files: SelectedFile[]) => void;
   setFileMessages: (messages: Message[]) => void;
   setInfo: (info: Info) => void;
-  setPopulated: (populated: boolean) => void;
   setShow: (show: boolean) => void;
 }
 
@@ -26,13 +24,17 @@ const useStore = create<StoreState>((set) => ({
   selectedFiles: [],
   fileMessages: [],
   info: {},
-  populated: false,
   show: false,
   setSelectedFiles: (files) => set(() => ({ selectedFiles: files })),
   setFileMessages: (messages) => set(() => ({ fileMessages: messages })),
   setInfo: (info) => set(() => ({ info })),
-  setPopulated: (populated) => set(() => ({ populated })),
-  setShow: (show) => set(() => ({ show })),
+  setShow: (show) =>
+    set((state) => {
+      if (state.show !== show) {
+        return { show };
+      }
+      return state;
+    }),
 }));
 
 interface Reaction {
@@ -78,12 +80,11 @@ export default function Home() {
     selectedFiles,
     fileMessages,
     info,
-    populated,
     show,
     setSelectedFiles,
     setFileMessages,
     setInfo,
-    setPopulated,
+
     setShow,
   } = useStore();
 
@@ -177,17 +178,16 @@ export default function Home() {
       const [messages, info] = data as [Message[], Info];
       setFileMessages(messages || []);
       setInfo(info || {});
-      setPopulated(messages.length > 0);
       setShow(messages.length > 0);
     }
-  }, [data, setFileMessages, setInfo, setPopulated, setShow]);
+  }, [data, setFileMessages, setInfo, setShow]);
 
   return (
     <main className="bg-slate-950 text-white min-h-screen max-w-screen">
       <div
         onClick={() => setShow(!show)}
         className={`${
-          populated ? "visible" : "invisible"
+          data ? "visible" : "invisible"
         }  top-0 left-0 flex flex-row w-fit h-fit p-1 bg-gray-800 rounded-br-lg sticky cursor-pointer`}
       >
         <svg
@@ -207,15 +207,15 @@ export default function Home() {
           />
         </svg>
       </div>
-      <h1 className="flex  font-Switzer font-semibold text-7xl lg:text-8xl md:text-8xl py-4 pl-4 lg:pb-24 md:pb-24 pb-20">
+      <h1 className="flex  font-Switzer font-semibold text-7xl lg:text-8xl md:text-8xl py-4 pl-4 lg:mb-24 md:mb-24 mb-20">
         Messenger Stats
       </h1>
 
       <motion.div {...motionProps}>
         <div className="flex flex-col">
-          <div className="flex flex-row w-full justify-around ">
+          <div className="md:ml-10 flex flex-row w-full justify-around ">
             <div className=" flex flex-col gap-4">
-              <div className="lg:h-[200px] md:h-[200px] h-fit w-fit lg:w-[600px] md:w-[600px]  flex  rounded-lg rounded-t-none rounded-br-none flex-col border-2 border-r-0 border-t-0  border-blue-700">
+              <div className=" lg:h-[200px] md:h-[200px] h-fit w-fit lg:w-[600px] md:w-[600px]  flex  rounded-lg rounded-t-none rounded-br-none flex-col border-2 border-r-0 border-t-0  border-blue-700">
                 <div className="bg-blue-700 rounded-tl-none w-full h-14 rounded-t-lg items-center flex pl-2">
                   <h2 className="text-white font-Switzer font-semibold lg:text-3xl md:text-3xl text-2xl tracking-wider">
                     Request Files from Facebook
@@ -237,7 +237,7 @@ export default function Home() {
                       here
                     </a>
                   </p>
-                  <p className="absolute pt-14 text-sm w-[200px]">
+                  <p className="absolute pt-14 text-sm w-[200px] md:w-full lg:w-full">
                     Or request manually by following the{" "}
                     <a
                       href="/tutorial"

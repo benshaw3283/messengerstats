@@ -369,23 +369,26 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
       </div>
 
       <div className="flex justify-center">
-        <Tabs defaultValue="total" className="w-[600px] ">
-          <TabsList className="w-[600px]">
+        <Tabs
+          defaultValue="total"
+          className="lg:w-[600px] md:w-[600px] w-[450px] "
+        >
+          <TabsList className="lg:w-[600px] md:w-[600px] w-[450px] ">
             <TabsTrigger
               value="total"
-              className="w-[200px] text-lg font-Switzer text-blue-700  tracking-wide"
+              className="lg:w-[200px] md:w-[200px] w-[150px] lg:text-lg font-Switzer text-blue-700  tracking-wide"
             >
               Messages Sent
             </TabsTrigger>
             <TabsTrigger
               value="reactions"
-              className="w-[200px] text-lg  font-Switzer text-blue-700  tracking-wide"
+              className="lg:w-[200px] md:w-[200px] w-[150px] lg:text-lg  font-Switzer text-blue-700  tracking-wide"
             >
               Message Reactions
             </TabsTrigger>
             <TabsTrigger
               value="most"
-              className="w-[200px] text-lg  font-Switzer text-blue-700  tracking-wide"
+              className="lg:w-[200px] md:w-[200px] w-[150px] lg:text-lg  font-Switzer text-blue-700  tracking-wide"
             >
               Most Reactions
             </TabsTrigger>
@@ -393,12 +396,12 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
           <TabsContent value="total">
             <div
               id="CONTAINER"
-              className=" flex lg:flex-row gap-4 lg:gap-0 flex-col w-full justify-center mt-4"
+              className=" flex lg:flex-row gap-4 lg:gap-0 flex-col w-full  justify-center mt-4"
             >
               <div className="bg-neutral-100 p-3 rounded-lg flex order-1 h-fit w-fit self-center lg:self-start border-2 border-blue-700">
                 <div
                   ref={div1Ref}
-                  className="pt-5 bg-blue-700 w-[500px] rounded-lg p-10 pb-2 h-fit z-10 flex flex-col "
+                  className="pt-5 bg-blue-700 lg:w-[500px] w-[450px] rounded-lg p-10 pb-2 h-fit z-10 flex flex-col "
                 >
                   <h2 className="font-semibold text-2xl pb-1 border-b-2 flex justify-center">
                     Messages Sent
@@ -457,7 +460,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
                 ref={div3Ref}
                 className="bg-neutral-100 p-3 rounded-lg border-2 border-blue-700"
               >
-                <div className="pt-5 bg-blue-700 w-[500px] rounded-lg p-10 pb-2 z-10 ">
+                <div className="pt-5 bg-blue-700 lg:w-[500px] w-[450px] rounded-lg p-10 pb-2 z-10 ">
                   <div className="flex flex-row border-b-2 justify-center ">
                     <h2 className="font-semibold lg:text-2xl text-base pb-1 flex  pr-1">
                       Messages with
