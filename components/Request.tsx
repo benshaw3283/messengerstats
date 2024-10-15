@@ -8,7 +8,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-const handleRequestDownload = async () => {
+export const handleRequestDownload = async () => {
   try {
     const response = await fetch("/api/requestDownload", { method: "GET" });
     const result = await response.json();

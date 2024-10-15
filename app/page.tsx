@@ -4,7 +4,7 @@ import React, { Suspense, memo } from "react";
 import Lists from "@/components/Lists";
 import Request from "@/components/Request";
 import { motion } from "framer-motion";
-
+import PhoneDemo from "@/components/PhoneDemo";
 const Demo = memo(React.lazy(() => import("@/components/Demo")));
 import { useQuery } from "@tanstack/react-query";
 import { create } from "zustand";
@@ -184,6 +184,9 @@ export default function Home() {
 
   return (
     <main className="bg-slate-950 text-white min-h-screen max-w-screen">
+      <div className="visible lg:invisible absolute top-0 -right-0 p-1 text-slate-500   font-semibold">
+        <PhoneDemo />
+      </div>
       <div
         onClick={() => setShow(!show)}
         className={`${
@@ -223,13 +226,12 @@ export default function Home() {
                 </div>
                 <div className="p-2 pt-2 text-slate-500">
                   <p>
-                    Facebook takes around{" "}
+                    Facebook takes up to{" "}
                     <strong className="text-white">6 hours</strong> for your
                     files to be ready.
                   </p>
-                  <p>{`You will receive a notification when they're ready to be `}</p>
                   <p>
-                    downloaded{" "}
+                    {`You will receive a notification when they're ready to be downloaded`}{" "}
                     <a
                       href="https://accountscenter.facebook.com/info_and_permissions/dyi/"
                       className="font-semibold text-blue-700 underline cursor-pointer hover:text-white"
@@ -237,7 +239,8 @@ export default function Home() {
                       here
                     </a>
                   </p>
-                  <p className="absolute pt-14 text-sm w-[200px] md:w-full lg:w-full">
+
+                  <p className="absolute lg:pt-20 md:pt-20 pt-14 text-sm w-[180px] md:w-fit lg:w-fit">
                     Or request manually by following the{" "}
                     <a
                       href="/tutorial"

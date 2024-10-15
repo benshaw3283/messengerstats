@@ -146,6 +146,7 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
           "Open the ZIP file and upload the ( your_facebook_activity ) folder",
         variant: "destructive",
       });
+      setBegun(false);
       return;
     }
 
