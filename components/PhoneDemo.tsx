@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { memo } from "react"; // Change this line to include memo
 import {
   Dialog,
   DialogClose,
@@ -89,7 +89,7 @@ const PhoneDemo = () => {
           <DialogTitle></DialogTitle>
           <DialogDescription></DialogDescription>
 
-          <div className="w-[60%] scale-75 -translate-y-14">
+          <div className="w-[60%] md:w-[80%] scale-75 md:scale-90 -translate-y-14">
             <div className="flex flex-col items-center">
               <section className="bg-neutral-100 p-3 rounded-lg mt-2 border-2 border-blue-700">
                 <div className="bg-blue-700 rounded-sm p-4  z-10">
@@ -110,23 +110,23 @@ const PhoneDemo = () => {
             </div>
 
             <div className="flex justify-center">
-              <Tabs defaultValue="total" className="w-[600px] ">
-                <TabsList className="w-[600px]">
+              <Tabs defaultValue="total" className="w-[600px] pr-5">
+                <TabsList className="w-[600px] md:w-full ">
                   <TabsTrigger
                     value="total"
-                    className="w-[200px] text-lg font-Switzer text-blue-700  tracking-wide"
+                    className="w-[200px] md:w-1/3 text-lg font-Switzer text-blue-700  tracking-wide"
                   >
                     Messages Sent
                   </TabsTrigger>
                   <TabsTrigger
                     value="reactions"
-                    className="w-[200px] text-lg  font-Switzer text-blue-700  tracking-wide"
+                    className="w-[200px] md:w-1/3 text-lg  font-Switzer text-blue-700  tracking-wide"
                   >
                     Message Reactions
                   </TabsTrigger>
                   <TabsTrigger
                     value="most"
-                    className="w-[200px] text-lg  font-Switzer text-blue-700  tracking-wide"
+                    className="w-[200px] md:w-1/3 text-lg  font-Switzer text-blue-700  tracking-wide"
                   >
                     Most Reactions
                   </TabsTrigger>
@@ -454,30 +454,6 @@ const PhoneDemo = () => {
                             playsInline
                           >
                             <source src="/demo_video_2.mp4" type="video/mp4" />
-                            Videos not supported
-                          </video>
-                        </CarouselItem>
-                        <CarouselItem>
-                          <div className="pb-1 text-white">
-                            <p className="font-semibold">
-                              3rd most reacted video
-                            </p>
-                            <div className="flex-row flex justify-between">
-                              <p>Sent by John Pork</p>
-                              <div className="w-16 h-6 bg-white rounded-full flex ">
-                                <p className="text-blue-700 pl-1 font-semibold">{`2 ${laughEmoji}${thumbEmoji}`}</p>
-                              </div>
-                            </div>
-                          </div>
-                          <video
-                            width="320"
-                            height="240"
-                            controls
-                            preload="auto"
-                            crossOrigin="anonymous"
-                            playsInline
-                          >
-                            <source src="/demo_video_3.mp4" type="video/mp4" />
                             Videos not supported
                           </video>
                         </CarouselItem>

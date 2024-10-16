@@ -389,7 +389,7 @@ const Demo = () => {
               <Carousel
                 orientation="horizontal"
                 opts={{ align: "center", loop: false }}
-                className="w-full  max-w-lg ml-10 "
+                className="w-full  max-w-sm ml-32"
               >
                 <CarouselContent className="-ml-1 ">
                   <CarouselItem>
@@ -437,28 +437,6 @@ const Demo = () => {
                       Videos not supported
                     </video>
                   </CarouselItem>
-                  <CarouselItem>
-                    <div className="pb-1">
-                      <p className="font-semibold">3rd most reacted video</p>
-                      <div className="flex-row flex justify-between">
-                        <p>Sent by John Pork</p>
-                        <div className="w-16 h-6 bg-white rounded-full flex ">
-                          <p className="text-blue-700 pl-1 font-semibold">{`2 ${laughEmoji}${thumbEmoji}`}</p>
-                        </div>
-                      </div>
-                    </div>
-                    <video
-                      width="320"
-                      height="240"
-                      controls
-                      preload="auto"
-                      crossOrigin="anonymous"
-                      playsInline
-                    >
-                      <source src="/demo_video_3.mp4" type="video/mp4" />
-                      Videos not supported
-                    </video>
-                  </CarouselItem>
                 </CarouselContent>
                 <CarouselPrevious className="text-blue-700" />
                 <CarouselNext className="text-blue-700" />
@@ -474,7 +452,7 @@ const Demo = () => {
               <Carousel
                 orientation="horizontal"
                 opts={{ align: "center", loop: false }}
-                className="w-full  max-w-lg ml-10 "
+                className="w-full  max-w-sm ml-32 "
               >
                 <CarouselContent className="-ml-1">
                   <CarouselItem>

@@ -182,6 +182,10 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
 
         // Send files for further processing
         onFilesUploaded(convoFiles);
+        toast({
+          title: "Files uploaded!",
+          className: "bg-green-600 text-white text-2xl",
+        });
         setBegun(false);
       } else {
         throw new Error("No files found in the selected folder");
@@ -193,11 +197,48 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
 
   return (
     <div>
-      <p>
-        {folderName.current?.length > 0
-          ? `Selected: ${folderName.current} `
-          : "No file selected"}
-      </p>
+      <div className="flex flex-row">
+        <p>
+          {folderName.current?.length > 0
+            ? `Selected: ${folderName.current} `
+            : "No file selected"}
+        </p>
+        {folderName.current?.length > 0 &&
+          folderName.current === "your_facebook_activity" && (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="size-6 pl-1"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="m4.5 12.75 6 6 9-13.5"
+                className="text-green-400"
+              />
+            </svg>
+          )}
+        {folderName.current?.length > 0 &&
+          folderName.current !== "your_facebook_activity" && (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="size-6 text-red-600 pl-1"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18 18 6M6 6l12 12"
+              />
+            </svg>
+          )}
+      </div>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}

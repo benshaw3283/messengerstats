@@ -86,6 +86,35 @@ interface NullFiles {
   audio: number;
 }
 
+interface Reaction {
+  reaction: string;
+  actor: string;
+}
+
+const getTopReactions = (reactions: Reaction[]) => {
+  if (!reactions || reactions.length === 0) return [];
+
+  // Count occurrences of each reaction
+  const reactionCount: Record<string, number> = {};
+  reactions.forEach(({ reaction }) => {
+    reactionCount[reaction] = (reactionCount[reaction] || 0) + 1;
+  });
+
+  // Sort reactions by frequency in descending order
+  const sortedReactions = Object.entries(reactionCount).sort(
+    (a, b) => b[1] - a[1]
+  );
+
+  // Return the top 1 or 2 reactions
+  return sortedReactions
+    .slice(0, 2)
+    .map(([reaction]) =>
+      new TextDecoder("utf-8").decode(
+        new Uint8Array(reaction.split("").map((char) => char.charCodeAt(0)))
+      )
+    );
+};
+
 const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
   const { toast } = useToast();
   const [selectedValue, setSelectedValue] = React.useState<number>(0);
@@ -636,6 +665,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
                               <div className="w-16 h-6 bg-white rounded-full flex ">
                                 <p className="text-blue-700 pl-1 font-semibold">
                                   {message.reactions.length}
+                                  {getTopReactions(message.reactions)}
                                 </p>
                               </div>
                             </div>
@@ -686,6 +716,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
                               <div className="w-16 h-6 bg-white rounded-full flex ">
                                 <p className="text-blue-700 pl-1 font-semibold">
                                   {message.reactions.length}
+                                  {getTopReactions(message.reactions)}
                                 </p>
                               </div>
                             </div>
@@ -745,6 +776,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
                           <div className="w-16 h-6 bg-white rounded-full flex ">
                             <p className="text-blue-700 pl-1 font-semibold">
                               {message.reactions.length}
+                              {getTopReactions(message.reactions)}
                             </p>
                           </div>
                         </div>
