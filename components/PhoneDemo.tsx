@@ -84,12 +84,12 @@ const PhoneDemo = () => {
   return (
     <div>
       <Dialog>
-        <DialogTrigger>Demo</DialogTrigger>
-        <DialogContent className="bg-slate-950">
+        <DialogTrigger className="hover:text-white">Demo</DialogTrigger>
+        <DialogContent className="bg-slate-950 h-[90%] overflow-y-scroll overflow-x-hidden">
           <DialogTitle></DialogTitle>
           <DialogDescription></DialogDescription>
 
-          <div className="w-[60%] md:w-[80%] scale-75 md:scale-90 -translate-y-14">
+          <div className="w-[60%]  scale-75 md:scale-90 -translate-y-14  translate-x-14">
             <div className="flex flex-col items-center">
               <section className="bg-neutral-100 p-3 rounded-lg mt-2 border-2 border-blue-700">
                 <div className="bg-blue-700 rounded-sm p-4  z-10">

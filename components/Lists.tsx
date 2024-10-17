@@ -379,14 +379,14 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
   return (
     <div className="pt-10 pb-10">
       <div className="flex flex-col items-center ">
-        <section className="bg-neutral-100 p-3 rounded-lg mt-2 border-2 border-blue-700">
+        <section className="bg-neutral-100 p-3 rounded-lg mt-2 border-2 border-blue-700 ">
           <div className="bg-blue-700 rounded-sm p-4  z-10">
             <h1 className="lg:text-5xl text-4xl font-semibold p-3 rounded-lg">
               {info.title}
             </h1>
           </div>
         </section>
-        <section className="bg-neutral-100 p-2 rounded-lg mt-2 border-2 border-blue-700">
+        <section className="bg-neutral-100 -translate-y-4 mt-[14px] p-2 rounded-lg rounded-t-none border-2 border-t-0 border-blue-700">
           <div className="flex flex-row gap-2 py-3 text-2xl font-semibold pt-5 bg-blue-700 rounded-sm p-2  z-10">
             <p>Total Messages:</p>
             <p>{addComma(fileMessages?.length)}</p>
@@ -713,7 +713,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
                             </p>
                             <div className="flex-row flex justify-between">
                               <p>{`Sent by ${message.sender_name}`}</p>
-                              <div className="w-16 h-6 bg-white rounded-full flex ">
+                              <div className="w-fit h-6 bg-white rounded-full flex ">
                                 <p className="text-blue-700 pl-1 font-semibold">
                                   {message.reactions.length}
                                   {getTopReactions(message.reactions)}
@@ -773,7 +773,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
                         </p>
                         <div className="flex-row flex justify-between">
                           <p>{`Sent by ${message.sender_name}`}</p>
-                          <div className="w-16 h-6 bg-white rounded-full flex ">
+                          <div className="w-fit h-6 bg-white rounded-full flex ">
                             <p className="text-blue-700 pl-1 font-semibold">
                               {message.reactions.length}
                               {getTopReactions(message.reactions)}

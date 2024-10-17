@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/toaster";
 import QueryProvider from "@/components/QueryProvider";
+import Footer from "@/components/Footer";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -13,7 +14,7 @@ const fontSans = FontSans({
 export const metadata: Metadata = {
   title: "Messenger Stats",
   description:
-    "Automatically request file downloads from Facebook and upload zip files to see stats for the desired conversation.",
+    "Automatically request file downloads from Facebook and upload files to see stats for the desired conversation.",
 };
 
 export default function RootLayout({
@@ -33,6 +34,7 @@ export default function RootLayout({
           <main>{children}</main>
         </QueryProvider>
         <Toaster />
+        <Footer />
       </body>
     </html>
   );

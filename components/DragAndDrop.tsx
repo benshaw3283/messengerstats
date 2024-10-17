@@ -27,7 +27,6 @@ const formSchema = z.object({
 const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
   const { toast } = useToast();
   const [dragging, setDragging] = useState<boolean>(false);
-  const [status, setStatus] = useState<string>("");
   const [begun, setBegun] = useState<boolean>(false);
   const folderName = React.useRef<string>("");
 
@@ -86,8 +85,8 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
           }
         }
         await Promise.all(promises);
-        form.setValue("file", files); // Set file array in form
-        form.trigger("file"); // Trigger validation or side effects on change
+        form.setValue("file", files);
+        form.trigger("file");
       };
 
       await readItems();
@@ -102,7 +101,7 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
         const allFiles = Array.from(files);
         //console.log("Files uploaded:", allFiles);
         folderName.current = allFiles[0]?.webkitRelativePath.split("/")[0];
-        form.setValue("file", allFiles); // Pass the entire file array
+        form.setValue("file", allFiles);
         form.trigger("file");
       }
     },
@@ -118,7 +117,6 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
     files.forEach((file) => {
       const fileSize = file.size;
 
-      // Split based on size
       if (chunkSize + fileSize <= maxSize) {
         chunk.push(file);
         chunkSize += fileSize;
@@ -167,7 +165,7 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
             const path = file.webkitRelativePath;
             if (
               path.includes("your_facebook_activity/messages/inbox/") &&
-              path.includes(data.convoName)
+              path.includes(data.convoName.toLowerCase().replace(/\s+/g, ""))
             ) {
               convoFiles.push(file);
             }
@@ -175,12 +173,17 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
         });
 
         if (convoFiles.length === 0) {
+          toast({
+            title:
+              "Could not find conversation folder. Check the spelling and try again!",
+            variant: "destructive",
+          });
+          setBegun(false);
           throw new Error(
             `No folder found matching convoName "${data.convoName}"`
           );
         }
 
-        // Send files for further processing
         onFilesUploaded(convoFiles);
         toast({
           title: "Files uploaded!",
@@ -198,9 +201,10 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
   return (
     <div>
       <div className="flex flex-row">
-        <p>
+        <p className="pr-1">Selected:</p>
+        <p className="font-semibold">
           {folderName.current?.length > 0
-            ? `Selected: ${folderName.current} `
+            ? folderName.current
             : "No file selected"}
         </p>
         {folderName.current?.length > 0 &&
@@ -335,7 +339,6 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
         </form>
       </Form>
       {begun ? <p>Processing...</p> : null}
-      {status && <p>{status}</p>}
     </div>
   );
 };
