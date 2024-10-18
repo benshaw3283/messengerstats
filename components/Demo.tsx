@@ -28,7 +28,7 @@ const Demo = () => {
   const { toast } = useToast();
   const [selectedValue, setSelectedValue] = React.useState<number>(0);
   const div1Ref = React.useRef<any>(null);
-  const div2Ref = React.useRef<any>(null);
+
   const div3Ref = React.useRef<any>(null);
 
   const copyToClipboard = async (text: any) => {

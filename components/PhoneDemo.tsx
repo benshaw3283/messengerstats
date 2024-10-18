@@ -333,7 +333,7 @@ const PhoneDemo = () => {
                     <Carousel
                       orientation="horizontal"
                       opts={{ align: "center", loop: false }}
-                      className="w-full max-w-sm ml-24 "
+                      className="w-full max-w-sm ml-20 "
                     >
                       <CarouselContent className="-ml-1">
                         <CarouselItem>
@@ -407,7 +407,7 @@ const PhoneDemo = () => {
                     <Carousel
                       orientation="horizontal"
                       opts={{ align: "center", loop: false }}
-                      className="w-full  max-w-xs ml-32 "
+                      className="w-full  max-w-xs ml-24 "
                     >
                       <CarouselContent className="-ml-1 ">
                         <CarouselItem>
@@ -463,10 +463,7 @@ const PhoneDemo = () => {
                     </Carousel>
                   </div>
 
-                  <div
-                    id="audio"
-                    className="border-t-2 border-slate-600 pb-14 "
-                  >
+                  <div id="audio" className="border-t-2 border-slate-600  ">
                     <div className="flex justify-center py-4">
                       <h2 className="text-xl font-semibold font-Switzer tracking-wider bg-blue-700 rounded-sm p-2  w-fit border-2 border-white justify-center flex">
                         Audio
@@ -475,7 +472,7 @@ const PhoneDemo = () => {
                     <Carousel
                       orientation="horizontal"
                       opts={{ align: "center", loop: false }}
-                      className="w-full  max-w-xs ml-32 "
+                      className="w-full  max-w-xs ml-24 "
                     >
                       <CarouselContent className="-ml-1">
                         <CarouselItem>
