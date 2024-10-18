@@ -26,7 +26,6 @@ const formSchema = z.object({
 
 const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
   const { toast } = useToast();
-  const [dragging, setDragging] = useState<boolean>(false);
   const [begun, setBegun] = useState<boolean>(false);
   const folderName = React.useRef<string>("");
 
@@ -41,11 +40,14 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
-      const allFiles = Array.from(acceptedFiles);
-      folderName.current = allFiles[0]?.webkitRelativePath.split("/")[0];
-      console.log(allFiles);
-      form.setValue("file", allFiles);
-      form.trigger("file");
+      //@ts-ignore
+      const path = acceptedFiles[0].path.split("/")[1];
+
+      if (acceptedFiles.length > 0) {
+        folderName.current = path;
+        form.setValue("file", acceptedFiles);
+        form.trigger("file");
+      }
     },
     [form]
   );
@@ -122,7 +124,8 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
         const convoFiles: File[] = [];
         chunks.forEach((chunk) => {
           chunk.forEach((file) => {
-            const path = file.webkitRelativePath;
+            //@ts-ignore
+            const path = file.webkitRelativePath || file?.path;
             if (
               path.includes("your_facebook_activity/messages/inbox/") &&
               path.includes(data.convoName.toLowerCase().replace(/\s+/g, ""))
