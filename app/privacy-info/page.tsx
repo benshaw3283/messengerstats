@@ -35,7 +35,7 @@ const PrivacyInfo = () => {
           </p>
           <p className="text-slate-300 pt-2">
             File uploads, chunking and reading are handled completely
-            browser-side. There is no database or external server connected to
+            client-side. There is no database or external server connected to
             this application, so when you reload the page any statistics
             gathered from uploaded files dissapear.{" "}
           </p>

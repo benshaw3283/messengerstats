@@ -4,7 +4,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useToast } from "./ui/use-toast";
-
+import { useDropzone } from "react-dropzone";
 import {
   Form,
   FormControl,
@@ -39,60 +39,20 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
     },
   });
 
-  const handleDragEnter = useCallback((e: DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragging(false);
-  }, []);
-
-  const handleDrop = useCallback(
-    async (e: DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setDragging(false);
-
-      const items = e.dataTransfer.items;
-      const files: File[] = [];
-
-      const traverseDirectory = async (item: any, path: string) => {
-        if (item.isDirectory) {
-          const dirReader = item.createReader();
-          const entries = await new Promise<any[]>((resolve) => {
-            dirReader.readEntries(resolve);
-          });
-
-          for (const entry of entries) {
-            await traverseDirectory(entry, path + item.name + "/");
-          }
-        } else if (item.isFile) {
-          const file = await new Promise<File>((resolve) => item.file(resolve));
-          files.push(file);
-        }
-      };
-
-      const readItems = async () => {
-        const promises = [];
-        for (let i = 0; i < items.length; i++) {
-          const item = items[i].webkitGetAsEntry();
-          if (item) {
-            promises.push(traverseDirectory(item, ""));
-          }
-        }
-        await Promise.all(promises);
-        form.setValue("file", files);
-        form.trigger("file");
-      };
-
-      await readItems();
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      const allFiles = Array.from(acceptedFiles);
+      folderName.current = allFiles[0]?.webkitRelativePath.split("/")[0];
+      console.log(allFiles);
+      form.setValue("file", allFiles);
+      form.trigger("file");
     },
     [form]
   );
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+  });
 
   const handleFileChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
@@ -256,12 +216,9 @@ const FolderDropzone: React.FC<FolderDropzoneProps> = ({ onFilesUploaded }) => {
                 <FormItem>
                   <div
                     className={`border-2 border-dashed border-white cursor-pointer rounded-lg ${
-                      dragging ? "border-2 border-double" : ""
+                      isDragActive ? "border-2 border-double" : ""
                     } bg-blue-700 lg:w-[250px] md:w-[250px] w-[150px] h-[102px]`}
-                    onDragEnter={handleDragEnter}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
+                    {...getRootProps()}
                   >
                     <FormControl>
                       <Input
