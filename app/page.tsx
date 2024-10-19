@@ -14,10 +14,12 @@ interface StoreState {
   fileMessages: Message[];
   info: Info;
   show: boolean;
+  demo: number;
   setSelectedFiles: (files: SelectedFile[]) => void;
   setFileMessages: (messages: Message[]) => void;
   setInfo: (info: Info) => void;
   setShow: (show: boolean) => void;
+  setDemo: (demo: number) => void;
 }
 
 const useStore = create<StoreState>((set) => ({
@@ -25,6 +27,7 @@ const useStore = create<StoreState>((set) => ({
   fileMessages: [],
   info: {},
   show: false,
+  demo: 0,
   setSelectedFiles: (files) => set(() => ({ selectedFiles: files })),
   setFileMessages: (messages) => set(() => ({ fileMessages: messages })),
   setInfo: (info) => set(() => ({ info })),
@@ -32,6 +35,13 @@ const useStore = create<StoreState>((set) => ({
     set((state) => {
       if (state.show !== show) {
         return { show };
+      }
+      return state;
+    }),
+  setDemo: (demo) =>
+    set((state) => {
+      if (state.demo !== demo) {
+        return { demo };
       }
       return state;
     }),
@@ -81,10 +91,11 @@ export default function Home() {
     fileMessages,
     info,
     show,
+    demo,
     setSelectedFiles,
     setFileMessages,
     setInfo,
-
+    setDemo,
     setShow,
   } = useStore();
 
@@ -147,7 +158,6 @@ export default function Home() {
     return [allMessages, updatedInfo];
   };
 
-  // Memoize motion.div properties
   const motionProps = React.useMemo(() => {
     return {
       initial: { scaleY: 1, height: "auto" },
@@ -160,7 +170,6 @@ export default function Home() {
     };
   }, [show]);
 
-  // Memoize Lists props to prevent unnecessary re-renders
   const listsProps = React.useMemo(
     () => ({
       selectedFiles,
@@ -170,7 +179,6 @@ export default function Home() {
     [selectedFiles, fileMessages, info]
   );
 
-  // Wrap Lists component with React.memo
   const MemoizedLists = React.memo(Lists);
 
   React.useEffect(() => {
@@ -210,13 +218,13 @@ export default function Home() {
           />
         </svg>
       </div>
-      <h1 className="flex  font-Switzer font-semibold text-7xl lg:text-8xl md:text-8xl py-4 pl-4 lg:mb-24 md:mb-24 mb-20">
+      <h1 className="flex  font-Switzer font-semibold text-6xl lg:text-8xl md:text-8xl py-4 pl-4 lg:mb-24 md:mb-24 mb-20">
         Messenger Stats
       </h1>
 
       <motion.div {...motionProps}>
         <div className="flex flex-col">
-          <div className="md:ml-10 flex flex-row w-full justify-around ">
+          <div className="md:ml-10 ml-24  flex flex-row w-fulljustify-around ">
             <div className=" flex flex-col gap-4">
               <div className=" lg:h-[200px] md:h-[200px] h-fit w-fit lg:w-[600px] md:w-[600px]  flex  rounded-lg rounded-t-none rounded-br-none flex-col border-2 border-r-0 border-t-0  border-blue-700">
                 <div className="bg-blue-700 rounded-tl-none w-full h-14 rounded-t-lg items-center flex pl-2">
