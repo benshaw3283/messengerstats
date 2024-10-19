@@ -80,12 +80,6 @@ interface Props {
   info: Info;
 }
 
-interface NullFiles {
-  photos: number;
-  videos: number;
-  audio: number;
-}
-
 interface Reaction {
   reaction: string;
   actor: string;
@@ -269,46 +263,46 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
     type: string
   ) => {
     // Filter messages based on the type and check for content
-    const filteredMessages = messages.filter((message) => {
-      const reactionCount = message.reactions?.length || 0;
-      switch (type) {
-        case "text":
-          return message.content && reactionCount > 0;
-        case "video":
-          return (
-            message.videos && message.videos.length > 0 && reactionCount > 0
-          );
-        case "photo":
-          return (
-            message.photos && message.photos.length > 0 && reactionCount > 0
-          );
-        case "audio":
-          return (
-            message.audio_files &&
-            message.audio_files.length > 0 &&
-            reactionCount > 0
-          );
-        default:
-          return false;
-      }
-    });
+    const filteredMessages = messages
+      .map((message, index) => {
+        const reactionCount = message.reactions?.length || 0;
+        let valid = false;
+        switch (type) {
+          case "video":
+            valid =
+              message.videos && message.videos.length > 0 && reactionCount > 0;
+            break;
+          case "photo":
+            valid =
+              message.photos && message.photos.length > 0 && reactionCount > 0;
+            break;
+          case "audio":
+            valid =
+              message.audio_files &&
+              message.audio_files.length > 0 &&
+              reactionCount > 0;
+            break;
+        }
+        return valid ? { message, index } : null;
+      })
+      .filter(Boolean) as Array<{ message: Message; index: number }>;
 
     // Sort filtered messages by the number of reactions in descending order
     const sortedMessages = filteredMessages.sort(
-      (a, b) => (b.reactions?.length || 0) - (a.reactions?.length || 0)
+      (a, b) =>
+        (b.message.reactions?.length || 0) - (a.message.reactions?.length || 0)
     );
 
-    // Return the top 3 most reacted messages
-    return sortedMessages.slice(0, 6);
+    // Return the top 10 most reacted messages (to check if 7th most reacted exists)
+    return sortedMessages.slice(0, 10);
   };
 
-  const topThreeReacted = {
-    photos: findTopThreeMostReactedPerType(fileMessages, "photo"),
-    videos: findTopThreeMostReactedPerType(fileMessages, "video"),
-    audios: findTopThreeMostReactedPerType(fileMessages, "audio"),
-  };
-
-  const findFileInSelectedFiles = (message: Audio | Video | Photo | any) => {
+  // Function to find valid files for top messages
+  const findFileInSelectedFiles = (messageObj: {
+    message: Message;
+    index: number;
+  }) => {
+    const { message, index } = messageObj;
     const file = selectedFiles.find((file) => {
       if (message.photos && message.photos.length > 0) {
         const photoUri = message.photos[0]?.uri;
@@ -325,31 +319,27 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
         const audioFileName = audioUri?.slice(audioUri.lastIndexOf("/") + 1);
         return file.name === audioFileName;
       }
-
       return false;
     });
 
-    /*   if (!file) {
-      console.log(
-        `File not found for message with filename: ${
-          message?.photos?.[0]?.uri ||
-          message?.videos?.[0]?.uri ||
-          message?.audio_files?.[0]?.uri
-        }`
-      );
-    }
-*/
-    return { message, file: file || null };
+    return { message, file: file || null, rank: index + 1 }; // Also return rank
   };
 
-  const mostReactedMessage = findTopThreeMostReactedPerType(
-    fileMessages,
-    "text"
-  );
+  const topThreeReacted = {
+    photos: findTopThreeMostReactedPerType(fileMessages, "photo"),
+    videos: findTopThreeMostReactedPerType(fileMessages, "video"),
+    audios: findTopThreeMostReactedPerType(fileMessages, "audio"),
+  };
 
+  // Use the modified findFileInSelectedFiles
   const mostReactedPhotos = topThreeReacted.photos.map(findFileInSelectedFiles);
   const mostReactedVideos = topThreeReacted.videos.map(findFileInSelectedFiles);
   const mostReactedAudios = topThreeReacted.audios.map(findFileInSelectedFiles);
+
+  // Filter only the valid (non-null) files
+  const validReactedPhotos = mostReactedPhotos.filter(({ file }) => file);
+  const validReactedVideos = mostReactedVideos.filter(({ file }) => file);
+  const validReactedAudios = mostReactedAudios.filter(({ file }) => file);
 
   // Cache object URLs for files
   const cachedPhotos = React.useMemo(
@@ -650,40 +640,42 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
                 className="w-full max-w-lg ml-10 "
               >
                 <CarouselContent className="-ml-1">
-                  {mostReactedPhotos?.map(
-                    ({ file, message }, index) =>
-                      file && (
-                        <CarouselItem key={index}>
-                          <div className="pb-1">
-                            <p className="font-semibold">
-                              {(index === 0 && "Most reacted image") ||
-                                (index === 1 && "2nd most reacted image") ||
-                                (index === 2 && "3rd most reacted image")}
+                  {validReactedPhotos?.map(({ file, message }, index) => (
+                    <CarouselItem key={index}>
+                      <div className="pb-1">
+                        <p className="font-semibold">
+                          {(index === 0 && "Most reacted image") ||
+                            (index === 1 && "2nd most reacted image") ||
+                            (index === 2 && "3rd most reacted image") ||
+                            (index === 3 && "4th most reacted image") ||
+                            (index === 4 && "5th most reacted image") ||
+                            (index === 5 && "6th most reacted image") ||
+                            (index === 6 && "7th most reacted image") ||
+                            (index === 7 && "8th most reacted image")}
+                        </p>
+                        <div className="flex-row flex justify-between">
+                          <p>{`Sent by ${message.sender_name}`}</p>
+                          <div className="w-fit px-1 h-6 bg-white rounded-full flex ">
+                            <p className="text-blue-700  font-semibold">
+                              {message.reactions.length}
+                              {getTopReactions(message.reactions)}
                             </p>
-                            <div className="flex-row flex justify-between">
-                              <p>{`Sent by ${message.sender_name}`}</p>
-                              <div className="w-16 h-6 bg-white rounded-full flex ">
-                                <p className="text-blue-700 pl-1 font-semibold">
-                                  {message.reactions.length}
-                                  {getTopReactions(message.reactions)}
-                                </p>
-                              </div>
-                            </div>
                           </div>
-                          {file ? (
-                            <Image
-                              loading="lazy"
-                              src={cachedPhotos[index] || ""}
-                              alt="most reacted photo"
-                              width={500}
-                              height={500}
-                            />
-                          ) : (
-                            <p>Image not found</p>
-                          )}
-                        </CarouselItem>
-                      )
-                  )}
+                        </div>
+                      </div>
+                      {file ? (
+                        <Image
+                          loading="lazy"
+                          src={URL.createObjectURL(file)}
+                          alt="most reacted photo"
+                          width={500}
+                          height={500}
+                        />
+                      ) : (
+                        <p>Image not found</p>
+                      )}
+                    </CarouselItem>
+                  ))}
                 </CarouselContent>
                 <CarouselPrevious className="text-blue-700" />
                 <CarouselNext className="text-blue-700" />
@@ -701,50 +693,52 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
                 className="w-full max-w-lg ml-10 "
               >
                 <CarouselContent className="-ml-1">
-                  {mostReactedVideos?.map(
-                    ({ file, message }, index) =>
-                      file && (
-                        <CarouselItem key={index}>
-                          <div className="pb-1">
-                            <p className="font-semibold">
-                              {(index === 0 && "Most reacted video") ||
-                                (index === 1 && "2nd most reacted video") ||
-                                (index === 2 && "3rd most reacted video")}
+                  {validReactedVideos?.map(({ file, message }, index) => (
+                    <CarouselItem key={index}>
+                      <div className="pb-1">
+                        <p className="font-semibold">
+                          {(index === 0 && "Most reacted image") ||
+                            (index === 1 && "2nd most reacted video") ||
+                            (index === 2 && "3rd most reacted video") ||
+                            (index === 3 && "4th most reacted video") ||
+                            (index === 4 && "5th most reacted video") ||
+                            (index === 5 && "6th most reacted video") ||
+                            (index === 6 && "7th most reacted video") ||
+                            (index === 7 && "8th most reacted video")}
+                        </p>
+                        <div className="flex-row flex justify-between">
+                          <p>{`Sent by ${message.sender_name}`}</p>
+                          <div className="w-fit px-1 h-6 bg-white rounded-full flex ">
+                            <p className="text-blue-700  font-semibold">
+                              {message.reactions.length}
+                              {getTopReactions(message.reactions)}
                             </p>
-                            <div className="flex-row flex justify-between">
-                              <p>{`Sent by ${message.sender_name}`}</p>
-                              <div className="w-fit h-6 bg-white rounded-full flex ">
-                                <p className="text-blue-700 pl-1 font-semibold">
-                                  {message.reactions.length}
-                                  {getTopReactions(message.reactions)}
-                                </p>
-                              </div>
-                            </div>
                           </div>
-                          <div className="flex justify-center items-center">
-                            {file ? (
-                              <video
-                                width="320"
-                                height="240"
-                                controls
-                                preload="auto"
-                                crossOrigin="anonymous"
-                                playsInline
-                                className="rounded-lg shadow-md"
-                              >
-                                <source
-                                  src={cachedVideos[index] || ""}
-                                  type="video/mp4"
-                                />
-                                Videos not supported
-                              </video>
-                            ) : (
-                              <p>Video not found</p>
-                            )}
-                          </div>
-                        </CarouselItem>
-                      )
-                  )}
+                        </div>
+                      </div>
+                      <div className="flex justify-center items-center">
+                        {file ? (
+                          <video
+                            width="320"
+                            height="240"
+                            controls
+                            preload="auto"
+                            crossOrigin="anonymous"
+                            playsInline
+                            className="rounded-lg shadow-md"
+                          >
+                            <source
+                              src={URL.createObjectURL(file)}
+                              type="video/mp4"
+                            />
+                            Videos not supported
+                          </video>
+                        ) : (
+                          <p>Video not found</p>
+                        )}
+                      </div>
+                    </CarouselItem>
+                  ))}
                 </CarouselContent>
                 <CarouselPrevious className="text-blue-700" />
                 <CarouselNext className="text-blue-700" />
@@ -763,18 +757,23 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
                 className="w-full max-w-lg ml-10 "
               >
                 <CarouselContent className="-ml-1">
-                  {mostReactedAudios?.map(({ file, message }, index) => (
+                  {validReactedAudios?.map(({ file, message }, index) => (
                     <CarouselItem key={index}>
                       <div className="pb-1">
                         <p className="font-semibold">
-                          {(index === 0 && "Most reacted audio") ||
+                          {(index === 0 && "Most reacted image") ||
                             (index === 1 && "2nd most reacted audio") ||
-                            (index === 2 && "3rd most reacted audio")}
+                            (index === 2 && "3rd most reacted audio") ||
+                            (index === 3 && "4th most reacted audio") ||
+                            (index === 4 && "5th most reacted audio") ||
+                            (index === 5 && "6th most reacted audio") ||
+                            (index === 6 && "7th most reacted audio") ||
+                            (index === 7 && "8th most reacted audio")}
                         </p>
                         <div className="flex-row flex justify-between">
                           <p>{`Sent by ${message.sender_name}`}</p>
-                          <div className="w-fit h-6 bg-white rounded-full flex ">
-                            <p className="text-blue-700 pl-1 font-semibold">
+                          <div className="w-fit px-1 h-6 bg-white rounded-full flex ">
+                            <p className="text-blue-700  font-semibold">
                               {message.reactions.length}
                               {getTopReactions(message.reactions)}
                             </p>
