@@ -224,7 +224,7 @@ export default function Home() {
 
       <motion.div {...motionProps}>
         <div className="flex flex-col">
-          <div className="md:ml-10 ml-24  flex flex-row w-fulljustify-around ">
+          <div className="md:ml-10 ml-[76px]  flex flex-row w-fulljustify-around ">
             <div className=" flex flex-col gap-4">
               <div className=" lg:h-[200px] md:h-[200px] h-fit w-fit lg:w-[600px] md:w-[600px]  flex  rounded-lg rounded-t-none rounded-br-none flex-col border-2 border-r-0 border-t-0  border-blue-700">
                 <div className="bg-blue-700 rounded-tl-none w-full h-14 rounded-t-lg items-center flex pl-2">
