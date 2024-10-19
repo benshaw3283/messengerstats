@@ -2,8 +2,9 @@ const puppeteer = require("puppeteer");
 import { NextResponse } from "next/server";
 
 export async function GET(request) {
+  let browser;
   try {
-    const browser = await puppeteer.launch({
+    browser = await puppeteer.launch({
       headless: false,
       args: ["--disable-notifications"],
     }); //TODO set to true for prod
@@ -362,8 +363,6 @@ export async function GET(request) {
       error: error.message,
     });
   } finally {
-    if (browser) {
-      await browser.close();
-    }
+    await browser.close();
   }
 }
