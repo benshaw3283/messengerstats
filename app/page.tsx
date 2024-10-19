@@ -1,15 +1,41 @@
 "use client";
-import Tutorial from "@/components/Tutorial";
-import { useToast } from "@/components/ui/use-toast";
+import ZipFileDropzone from "@/components/DragAndDrop";
+import React, { Suspense, memo } from "react";
+import Lists from "@/components/Lists";
+import Request from "@/components/Request";
+import { motion } from "framer-motion";
+import PhoneDemo from "@/components/PhoneDemo";
+const Demo = memo(React.lazy(() => import("@/components/Demo")));
+import { useQuery } from "@tanstack/react-query";
+import { create } from "zustand";
 
-import React from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+interface StoreState {
+  selectedFiles: SelectedFile[];
+  fileMessages: Message[];
+  info: Info;
+  show: boolean;
+  setSelectedFiles: (files: SelectedFile[]) => void;
+  setFileMessages: (messages: Message[]) => void;
+  setInfo: (info: Info) => void;
+  setShow: (show: boolean) => void;
+}
+
+const useStore = create<StoreState>((set) => ({
+  selectedFiles: [],
+  fileMessages: [],
+  info: {},
+  show: false,
+  setSelectedFiles: (files) => set(() => ({ selectedFiles: files })),
+  setFileMessages: (messages) => set(() => ({ fileMessages: messages })),
+  setInfo: (info) => set(() => ({ info })),
+  setShow: (show) =>
+    set((state) => {
+      if (state.show !== show) {
+        return { show };
+      }
+      return state;
+    }),
+}));
 
 interface Reaction {
   reaction: string;
@@ -28,492 +54,258 @@ interface Message {
   is_geoblocked_for_viewer: boolean;
 }
 
+interface Content {
+  image: any;
+  is_still_participant: boolean;
+  joinable_mode: any;
+  magic_words: Array<any>;
+  messages: Array<Message>;
+  participants: Array<Participant>;
+  thread_path: string;
+  title: string;
+}
+
+interface Info {
+  participants?: Array<Participant>;
+  title?: string;
+}
+
+interface SelectedFile {
+  name: string;
+  content: Content;
+}
+
 export default function Home() {
-  const { toast } = useToast();
-  const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
-  const [fileMessages, setFileMessages] = React.useState<Message[]>([]);
-  const [participants, setParticipants] = React.useState<Participant[]>([]);
-  const [selectedValue, setSelectedValue] = React.useState<number>(0);
-  const [selectedWord, setSelectedWord] = React.useState<FormData>();
-  const convoTitleRef = React.useRef<string>("");
-  const fileInputRef = React.useRef(null);
-  const div1Ref = React.useRef<any>(null);
-  const div2Ref = React.useRef<any>(null);
-  const div3Ref = React.useRef<any>(null);
+  const {
+    selectedFiles,
+    fileMessages,
+    info,
+    show,
+    setSelectedFiles,
+    setFileMessages,
+    setInfo,
 
-  // let folderName = selectedFiles[0];
+    setShow,
+  } = useStore();
 
-  const handleButtonClick = () => {
-    // Trigger the click event of the file input
-    if (fileInputRef.current) {
-      (fileInputRef?.current as HTMLInputElement).click();
-    }
-  };
-
-  const handleChange = (value: string) => {
-    setSelectedValue(parseInt(value));
-  };
-
-  const handleWordChange = (formData: FormData) => {
-    const word: any = formData.get("wordSearch");
-    setSelectedWord(word);
-  };
-
-  const handleFileSelect = async (event: any) => {
-    const files = event.target.files; // Access the FileList object
-
-    // Convert the FileList object to an array
-    const fileListArray: File[] = Array.from(files);
-
-    // Update state to store the array of selected files
-    setSelectedFiles(fileListArray);
-  };
-
-  const readParticipants = async () => {
-    try {
-      // Find the file object for message_1.json
-      const message1File = selectedFiles.find(
-        (file) => file.name === "message_1.json"
-      );
-      if (!message1File) {
-        console.error("message_1.json not found in selected files.");
-        return;
-      }
-
-      const reader = new FileReader();
-      const blob = new Blob([message1File], { type: message1File.type });
-
-      reader.onload = (event: any) => {
-        const fileContents = event.target.result;
-        try {
-          const jsonData = JSON.parse(fileContents);
-          const participantsArray = jsonData.participants;
-          setParticipants(participantsArray);
-          console.log("Participants array:", participantsArray);
-        } catch (error) {
-          console.error("Error parsing JSON:", error);
-        }
-      };
-
-      reader.readAsText(blob);
-    } catch (error) {
-      console.error("Error reading file:", error);
-    }
-  };
-
-  const readThenSpread = async () => {
-    selectedFiles.forEach((file, index) => {
-      const currentFile = selectedFiles[index];
-      const reader = new FileReader();
-
-      // Create a Blob object from the File object
-      const blob = new Blob([currentFile], { type: currentFile.type });
-
-      reader.onload = (event: any) => {
-        const fileContents = event.target.result;
-
-        try {
-          const jsonData = JSON.parse(fileContents);
-          convoTitleRef.current = jsonData.title;
-          const spread: any = [...jsonData.messages];
-          setFileMessages((prev) => [...prev, ...spread]);
-        } catch (error) {
-          console.error("Error parsing JSON:", error);
-        }
-      };
-
-      // Pass the Blob object to readAsText()
-      reader.readAsText(blob);
-    });
-  };
-
-  const messageCounts = participants.map((participant) => {
-    const count = fileMessages?.filter(
-      (message) => message.sender_name === participant.name
-    ).length;
-    return { name: participant.name, count: count };
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["selectedFiles", selectedFiles],
+    queryFn: async () => {
+      return await spreadMessages();
+    },
+    enabled: selectedFiles.length > 0,
   });
 
-  const sortedCount = messageCounts.sort((a, b) => b.count - a.count);
+  const handleFilesUploaded = React.useCallback(
+    (files: any[]) => {
+      setSelectedFiles(files);
+      console.log("Files received from ZipFileDropzone:", files);
+    },
+    [setSelectedFiles]
+  );
 
-  const numberReactions = (number: number) => {
-    // Function to find messages with number or more reactions
-    const findMessagesWithNumberPlusReactions = (messages: any) => {
-      const messagesWithNumberPlusReactions = messages.filter(
-        (message: Message) =>
-          message?.reactions && message.reactions.length >= number
-      );
-      return messagesWithNumberPlusReactions;
-    };
+  const spreadMessages = async () => {
+    const updatedInfo: Info = {};
+    const allMessages: Message[] = [];
 
-    // Get messages with number or more reactions
-    const messagesWithNumberPlusReactions =
-      findMessagesWithNumberPlusReactions(fileMessages);
+    const messagePromises = selectedFiles.map(async (file) => {
+      const fileName = file?.name.toLowerCase();
 
-    // Create a map to count messages by sender
-    const messagesCountBySender: any = {};
-    messagesWithNumberPlusReactions.forEach((message: Message) => {
-      const senderName = message.sender_name;
-      if (!messagesCountBySender[senderName]) {
-        messagesCountBySender[senderName] = 1;
-      } else {
-        messagesCountBySender[senderName]++;
-      }
-    });
+      if (fileName.endsWith(".json")) {
+        const reader = new FileReader();
 
-    // Convert messagesCountBySender to an array for sorting
-    const senderList = Object.entries(messagesCountBySender);
-
-    // Sort senderList by message count
-    senderList.sort((a: any, b: any) => b[1] - a[1]);
-
-    // Render the sorted list of senders and their message counts
-    const sortedSenderList = senderList.map(
-      ([senderName, messageCount], index) => (
-        <div
-          className={
-            index === 0
-              ? "lg:text-2xl text-xl font-bold flex flex-row justify-start w-full h-fit"
-              : "font-semibold text-xl flex flex-row justify-start py-1 w-full h-fit"
-          }
-          key={senderName}
-        >
-          <p className="pr-2 flex ">{`${index + 1}.`}</p>
-          <p className="pr-4 flex pl-2 lg:pl-4  w-full">{senderName}</p>
-          <p className="font-bold text-xl lg:pl-6 pl-2">
-            {addComma(messageCount)}
-          </p>
-        </div>
-      )
-    );
-
-    return sortedSenderList;
-  };
-
-  const wordOccurrences = (word: string | any) => {
-    // Function to find messages containing the specified word/s
-    const findMessagesWithWord = (messages: any) => {
-      const messagesWithWord = messages.filter(
-        (message: Message) => message?.content && message.content.includes(word)
-      );
-      return messagesWithWord;
-    };
-
-    // Get messages containing the specified word
-    const messagesWithWord = findMessagesWithWord(fileMessages);
-
-    // Create a map to count messages by sender
-    const messagesCountBySender: any = {};
-    messagesWithWord.forEach((message: Message) => {
-      const senderName = message.sender_name;
-      if (!messagesCountBySender[senderName]) {
-        messagesCountBySender[senderName] = 1;
-      } else {
-        messagesCountBySender[senderName]++;
-      }
-    });
-
-    // Convert messagesCountBySender to an array for sorting
-    const senderList = Object.entries(messagesCountBySender);
-
-    // Sort senderList by message count
-    senderList.sort((a: any, b: any) => b[1] - a[1]);
-
-    // Render the sorted list of senders and their message counts
-    const sortedSenderList = senderList.map(
-      ([senderName, messageCount], index) => (
-        <div
-          className={
-            index === 0
-              ? "text-2xl font-bold flex flex-row justify-start w-full"
-              : "font-semibold text-xl flex flex-row justify-start py-1 w-full"
-          }
-          key={senderName}
-        >
-          <p className="pr-2 ">{`${index + 1}.`}</p>
-          <p className="pr-4 flex w-full lg:pl-4 pl-2">{senderName}</p>
-          <p className="font-bold text-xl pl-4">{addComma(messageCount)}</p>
-        </div>
-      )
-    );
-
-    return sortedSenderList;
-  };
-
-  // Function to find the user who reacted the most
-  const findReactedMost = (messages: Message[]) => {
-    const reactionCounts: any = {};
-    messages.forEach((message) => {
-      if (message.reactions) {
-        message.reactions.forEach((reaction) => {
-          const user = reaction.actor;
-          if (!reactionCounts[user]) {
-            reactionCounts[user] = 1;
-          } else {
-            reactionCounts[user]++;
-          }
+        const fileContent = await new Promise<Content>((resolve, reject) => {
+          reader.onload = (event) => {
+            try {
+              const parsedContent: Content = JSON.parse(
+                event.target?.result as string
+              );
+              resolve(parsedContent);
+            } catch (error) {
+              reject(error);
+            }
+          };
+          reader.onerror = reject;
+          reader.readAsText(file as any);
         });
+
+        // Accumulate the information to avoid updating state multiple times
+        if (!updatedInfo.participants) {
+          updatedInfo.participants = fileContent.participants;
+        }
+        if (!updatedInfo.title) {
+          updatedInfo.title = fileContent.title;
+        }
+
+        allMessages.push(...(fileContent.messages || []));
       }
     });
 
-    let mostReactedUser = null;
-    let maxReactions: any = 0;
-    for (const [user, count] of Object.entries(reactionCounts)) {
-      if ((count as number) > maxReactions) {
-        mostReactedUser = user;
-        maxReactions = count as number;
-      }
-    }
+    await Promise.all(messagePromises);
 
-    return mostReactedUser;
+    console.log("Processed JSON files and updated messages:", allMessages);
+    return [allMessages, updatedInfo];
   };
 
-  // Find the user who reacted the most
-  const reactedMost = findReactedMost(fileMessages);
+  // Memoize motion.div properties
+  const motionProps = React.useMemo(() => {
+    return {
+      initial: { scaleY: 1, height: "auto" },
+      animate: { scaleY: show ? 0 : 1, height: show ? 0 : "auto" },
+      transition: { duration: 0.5, ease: "easeInOut" },
+      style: {
+        transformOrigin: "top",
+        overflow: "hidden",
+      },
+    };
+  }, [show]);
 
-  const addComma = (count: any | unknown) => {
-    let withComma = "";
-    const string = count.toString();
-    if (string.length === 5) {
-      withComma = `${string.charAt(0)}${string.charAt(1)},${string.charAt(
-        2
-      )}${string.charAt(3)}${string.charAt(4)}`;
-    } else if (string.length === 4) {
-      withComma = `${string.charAt(0)},${string.charAt(1)}${string.charAt(
-        2
-      )}${string.charAt(3)}`;
-    } else if (string.length === 6) {
-      withComma = `${string.charAt(0)}${string.charAt(1)}${string.charAt(
-        2
-      )},${string.charAt(3)}${string.charAt(4)}${string.charAt(5)}`;
-    } else {
-      withComma = string;
-    }
-    return withComma;
-  };
+  // Memoize Lists props to prevent unnecessary re-renders
+  const listsProps = React.useMemo(
+    () => ({
+      selectedFiles,
+      fileMessages,
+      info,
+    }),
+    [selectedFiles, fileMessages, info]
+  );
 
-  const copyToClipboard = async (text: any) => {
-    try {
-      navigator.clipboard.writeText(
-        text
-          .replace(/\n/g, " ")
-          .split(/\d+\./)
-          .filter((line: any) => line.trim().length > 0)
-          .map((line: any) => line.trim())
-          .join("\n")
-      );
-      toast({
-        title: "Copied to clipboard",
-      });
-    } catch (error) {
-      alert(error);
-    }
-  };
+  // Wrap Lists component with React.memo
+  const MemoizedLists = React.memo(Lists);
 
   React.useEffect(() => {
-    readThenSpread();
-    readParticipants();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFiles]);
+    if (data) {
+      const [messages, info] = data as [Message[], Info];
+      setFileMessages(messages || []);
+      setInfo(info || {});
+      setShow(messages.length > 0);
+    }
+  }, [data, setFileMessages, setInfo, setShow]);
 
   return (
-    <main className="bg-slate-950 text-white">
-      <div ref={div1Ref} className="flex flex-col container items-center">
-        <h1 className="flex self-center font-bold lg:text-3xl text-2xl py-4">
-          Facebook Messenger Stats
-        </h1>
-
-        <div className="flex justify-center items-center">
-          <div className="border-4 p-2 rounded-sm bg-white w-[225px]  h-[60px] flex">
-            <button
-              onClick={handleButtonClick}
-              className="absolute bg-blue-700  hover:scale-110  w-[200px] h-[50px] rounded-sm font-semibold self-center "
-            >
-              Choose Files
-            </button>
-
-            <input
-              type="file"
-              ref={fileInputRef}
-              // @ts-ignore
-              directory=""
-              webkitdirectory=""
-              multiple
-              onChange={handleFileSelect}
-              className="rounded-sm w-[110px] hidden"
-            />
-          </div>
-        </div>
-        {fileMessages.length === 0 && (
-          <p className="text-sm text-muted text-slate-400 mt-3">
-            * Facebook takes about 1 day to have your files ready to download
-          </p>
-        )}
+    <main className="bg-slate-950 text-white min-h-screen max-w-screen">
+      <div className="visible lg:invisible absolute top-0 -right-0 p-1 text-slate-500   font-semibold">
+        <PhoneDemo />
       </div>
-      <div className="border border-white mt-6"></div>
+      <div
+        onClick={() => setShow(!show)}
+        className={`${
+          data ? "visible" : "invisible"
+        }  top-0 left-0 flex flex-row w-fit h-fit p-1 bg-gray-800 rounded-br-lg sticky cursor-pointer`}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+          className={`size-5 transition-transform duration-200 ${
+            show ? "" : "scale-y-[-1]"
+          }`}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="m4.5 15.75 7.5-7.5 7.5 7.5"
+          />
+        </svg>
+      </div>
+      <h1 className="flex  font-Switzer font-semibold text-7xl lg:text-8xl md:text-8xl py-4 pl-4 lg:mb-24 md:mb-24 mb-20">
+        Messenger Stats
+      </h1>
 
-      {selectedFiles.length ? (
-        <div className="flex flex-col items-center ">
-          <section className="bg-neutral-100 p-4 rounded-lg mt-2 border-2 border-blue-700">
-            <div className="bg-blue-700 rounded-lg p-4   z-10">
-              <h1 className="lg:text-5xl text-4xl font-semibold p-3  rounded-lg">
-                {convoTitleRef.current}
-              </h1>
-            </div>
-          </section>
-          <section className="bg-neutral-100 p-2 rounded-lg mt-2 border-2 border-blue-700">
-            <div className="flex flex-row gap-2 py-3 text-2xl font-semibold pt-5 bg-blue-700 rounded-lg p-2  z-10">
-              <p>Total Messages:</p>
-              <p>{addComma(fileMessages?.length)}</p>
-            </div>
-          </section>
-          <div>
-            <p className="text-lg font-semibold">{`Reacted the most messages: ${reactedMost}`}</p>
-          </div>
-          <div
-            id="CONTAINER"
-            className=" flex lg:flex-row gap-4 lg:gap-0 flex-col w-full justify-around mt-10"
-          >
-            <div className="bg-neutral-100 p-4 rounded-lg flex order-1 h-fit w-fit self-center lg:self-start border-2 border-blue-700">
-              <div
-                ref={div1Ref}
-                className="pt-5 bg-blue-700 rounded-lg p-10 h-fit z-10 flex flex-col "
-              >
-                <h2 className="font-semibold text-2xl border-b-2 flex justify-center">
-                  Messages Sent
-                </h2>
-                <span className="relative flex self-end items-end -top-5 left-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-6 h-6 absolute cursor-pointer hover:scale-105"
-                    onClick={() => copyToClipboard(div1Ref.current?.innerText)}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"
-                    />
-                  </svg>
-                </span>
-
-                <div className="py-3 ">
-                  {sortedCount.map((person, index) => (
-                    <div
-                      key={index}
-                      className={
-                        index === 0
-                          ? "text-xl lg:text-2xl font-bold flex flex-row justify-start w-full"
-                          : "font-semibold text-xl flex flex-row justify-start py-1 w-full"
-                      }
+      <motion.div {...motionProps}>
+        <div className="flex flex-col">
+          <div className="md:ml-10 flex flex-row w-full justify-around ">
+            <div className=" flex flex-col gap-4">
+              <div className=" lg:h-[200px] md:h-[200px] h-fit w-fit lg:w-[600px] md:w-[600px]  flex  rounded-lg rounded-t-none rounded-br-none flex-col border-2 border-r-0 border-t-0  border-blue-700">
+                <div className="bg-blue-700 rounded-tl-none w-full h-14 rounded-t-lg items-center flex pl-2">
+                  <h2 className="text-white font-Switzer font-semibold lg:text-3xl md:text-3xl text-2xl tracking-wider">
+                    Request Files from Facebook
+                  </h2>
+                </div>
+                <div className="p-2 pt-2 text-slate-500">
+                  <p>
+                    Facebook takes up to{" "}
+                    <strong className="text-white">6 hours</strong> for your
+                    files to be ready.
+                  </p>
+                  <p>
+                    {`You will receive a notification when they're ready to be downloaded`}{" "}
+                    <a
+                      href="https://accountscenter.facebook.com/info_and_permissions/dyi/"
+                      className="font-semibold text-blue-700 underline cursor-pointer hover:text-white"
                     >
-                      <p className="pr-2 ">{`${index + 1}.`}</p>
+                      here
+                    </a>
+                  </p>
 
-                      <p className="pr-1 lg:pr-4 flex w-full pl-2 lg:pl-4">
-                        {person.name}
-                      </p>
+                  <p className="absolute lg:pt-20 md:pt-20 pt-14 text-sm w-[180px] md:w-fit lg:w-fit">
+                    Or request manually by following the{" "}
+                    <a
+                      href="/tutorial"
+                      className="text-blue-700 underline cursor-pointer hover:text-white font-semibold "
+                    >
+                      Tutorial
+                    </a>
+                  </p>
+                </div>
+                <div className="h-full justify-end flex place-items-end p-2">
+                  <Request />
+                </div>
+              </div>
+              <div className="h-fit w-fit flex lg:w-[600px] rounded-lg rounded-t-none rounded-br-none flex-col border-2 border-r-0 border-t-0  border-blue-700">
+                <div className="bg-blue-700 rounded-tl-none w-full h-10 rounded-t-lg items-center flex pl-2">
+                  <h2 className="text-white font-Switzer font-semibold text-2xl lg:text-3xl tracking-wider">
+                    Choose Files
+                  </h2>
+                </div>
+                <div className="p-2 pt-1 pb-0 text-slate-500">
+                  <p>
+                    <strong>1.</strong> Open the downloaded ZIP file
+                  </p>
 
-                      <p className="font-bold text-xl lg:pl-6 pl-2">
-                        {addComma(person.count)}
-                      </p>
-                    </div>
-                  ))}
+                  <p>
+                    <strong>2.</strong> Select or drop the{" "}
+                    <strong className="text-white">{`"your_facebook_activity"`}</strong>{" "}
+                    folder in the area below and enter the name of the
+                    conversation you want to see the stats of.
+                  </p>
+
+                  <p></p>
+                </div>
+
+                <div className="flex mt-10 rounded-tr-lg p-2 bg-blue-700 ">
+                  <ZipFileDropzone onFilesUploaded={handleFilesUploaded} />
                 </div>
               </div>
             </div>
-            <div className="flex flex-col  items-center order-3 mt-10 lg:mt-0">
-              <div
-                ref={div3Ref}
-                className="bg-neutral-100 p-4 rounded-lg border-2 border-blue-700"
-              >
-                <div className="pt-5 bg-blue-700 rounded-lg p-10  z-10 ">
-                  <div className="flex flex-row border-b-2">
-                    <h2 className="font-semibold lg:text-xl text-base pb-1 flex justify-center pr-1">
-                      Messages with
-                    </h2>
-                    <Select onValueChange={(v: any) => handleChange(v)}>
-                      <SelectTrigger className="w-[60px] h-[25px] text-black">
-                        <SelectValue placeholder="1" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">1</SelectItem>
-                        <SelectItem value="2">2</SelectItem>
-                        <SelectItem value="3">3</SelectItem>
-                        <SelectItem value="4">4</SelectItem>
-                        <SelectItem value="5">5</SelectItem>
-                        <SelectItem value="6">6</SelectItem>
-                        <SelectItem value="7">7</SelectItem>
-                        <SelectItem value="8">8</SelectItem>
-                        <SelectItem value="9">9</SelectItem>
-                        <SelectItem value="10">10</SelectItem>
-                        <SelectItem value="11">11</SelectItem>
-                        <SelectItem value="12">12</SelectItem>
-                        <SelectItem value="13">13</SelectItem>
-                        <SelectItem value="14">14</SelectItem>
-                        <SelectItem value="15">15</SelectItem>
-                        <SelectItem value="16">16</SelectItem>
-                        <SelectItem value="17">17</SelectItem>
-                        <SelectItem value="18">18</SelectItem>
-                        <SelectItem value="19">19</SelectItem>
-                        <SelectItem value="20">20</SelectItem>
-                        <SelectItem value="21">21</SelectItem>
-                        <SelectItem value="22">22</SelectItem>
-                        <SelectItem value="23">23</SelectItem>
-                        <SelectItem value="24">24</SelectItem>
-                        <SelectItem value="25">25</SelectItem>
-                        <SelectItem value="26">26</SelectItem>
-                        <SelectItem value="27">27</SelectItem>
-                        <SelectItem value="28">28</SelectItem>
-                        <SelectItem value="29">29</SelectItem>
-                        <SelectItem value="30">30</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="font-semibold lg:text-xl text-base pb-1 flex justify-center pl-1">
-                      + Reactions
-                    </p>
-                  </div>
-                  <span className="relative flex justify-end  items-end -top-5 left-8">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-6 h-6 absolute cursor-pointer hover:scale-105"
-                      onClick={() =>
-                        copyToClipboard(div3Ref.current?.innerText)
-                      }
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"
-                      />
-                    </svg>
-                  </span>
-                  <div className="flex flex-col items-center">
-                    <div className="py-3 text-lg font-semibold flex flex-col items-start">
-                      {" "}
-                      {fileMessages ? numberReactions(selectedValue) : ""}
-                    </div>
-                  </div>
-                </div>
+
+            <div className="invisible lg:visible -translate-y-[100px] flex flex-col scale-75 border-l-2 border-b-2 border-blue-700 rounded-lg rounded-br-none ">
+              <div className="bg-blue-700 rounded-t-lg h-12 justify-center place-items-center flex">
+                <h1 className=" font-Switzer text-4xl font-semibold tracking-wide ">
+                  Demo
+                </h1>
+              </div>
+              <div className="lg:p-10">
+                <Suspense fallback={<div>Loading Demo...</div>}>
+                  <Demo />
+                </Suspense>
               </div>
             </div>
           </div>
         </div>
+      </motion.div>
+
+      {data ? (
+        <MemoizedLists {...listsProps} />
+      ) : error ? (
+        <div>Error occurred: {error.message}</div>
       ) : (
-        <div>
-          <p className="flex text-lg font-semibold justify-center pt-4">
-            Upload files to see stats
-          </p>
+        <div className="flex justify-center font-semibold">
+          Upload folder to see stats
         </div>
       )}
-
-      <Tutorial />
     </main>
   );
 }

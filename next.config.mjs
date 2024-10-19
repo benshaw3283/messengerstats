@@ -1,4 +1,14 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+import MillionLint from "@million/lint";
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        hostname: "localhost",
+        port: "3001",
+      },
+    ],
+  },
+};
 
-export default nextConfig;
+export default MillionLint.next({ rsc: true })(nextConfig);
