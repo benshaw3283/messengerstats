@@ -342,7 +342,9 @@ export async function GET(request) {
         }
       }, divSelector);
       console.log("clicked create files");
-      await browser.close();
+      if (browser) {
+        await browser.close();
+      }
     }
 
     await clickContinue();
