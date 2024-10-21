@@ -5,7 +5,7 @@ export async function GET(request) {
   let browser;
   try {
     browser = await puppeteer.launch({
-      headless: true,
+      headless: false,
       args: ["--disable-notifications"],
     }); //TODO set to true for prod
     const page = await browser.newPage();
