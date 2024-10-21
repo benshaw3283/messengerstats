@@ -45,6 +45,9 @@ const Request = () => {
                   Tutorial
                 </a>
               </p>
+              <p className="text-red-600 text-xs flex justify-center pt-1">
+                ! Does not work on phones !
+              </p>
             </DialogDescription>
           </DialogHeader>
           <button

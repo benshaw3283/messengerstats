@@ -191,8 +191,8 @@ export default function Home() {
   }, [data, setFileMessages, setInfo, setShow]);
 
   return (
-    <main className="bg-slate-950 text-white min-h-screen max-w-screen">
-      <div className="visible lg:invisible absolute top-0 -right-0 p-1 text-slate-500   font-semibold">
+    <main className="bg-slate-950 text-white min-h-screen w-full  ">
+      <div className="visible lg:invisible absolute top-0 right-0 p-1 text-slate-500   font-semibold">
         <PhoneDemo />
       </div>
       <div
@@ -218,14 +218,14 @@ export default function Home() {
           />
         </svg>
       </div>
-      <h1 className="flex  font-Switzer font-semibold text-6xl lg:text-8xl md:text-8xl py-4 pl-4 lg:mb-24 md:mb-24 mb-20">
+      <h1 className="flex  font-Switzer font-semibold  text-6xl lg:text-8xl md:text-8xl py-4 pl-4 lg:mb-24 md:mb-24 mb-20">
         Messenger Stats
       </h1>
 
       <motion.div {...motionProps}>
         <div className="flex flex-col">
-          <div className="md:ml-10 ml-[76px]  flex flex-row w-full justify-around ">
-            <div className=" flex flex-col gap-4">
+          <div className="md:ml-10 scale-90 lg:scale-90 xl:scale-100 md:scale-90 md:-translate-y-0 lg:-translate-y-0 -translate-y-[20px] flex flex-row w-full justify-center lg:justify-center xl:justify-around ">
+            <div className=" flex flex-col  gap-4">
               <div className=" lg:h-[200px] md:h-[200px] h-fit w-fit lg:w-[600px] md:w-[600px]  flex  rounded-lg rounded-t-none rounded-br-none flex-col border-2 border-r-0 border-t-0  border-blue-700">
                 <div className="bg-blue-700 rounded-tl-none w-full h-14 rounded-t-lg items-center flex pl-2">
                   <h2 className="text-white font-Switzer font-semibold lg:text-3xl md:text-3xl text-2xl tracking-wider">
@@ -262,7 +262,7 @@ export default function Home() {
                   <Request />
                 </div>
               </div>
-              <div className="h-fit w-fit flex lg:w-[600px] rounded-lg rounded-t-none rounded-br-none flex-col border-2 border-r-0 border-t-0  border-blue-700">
+              <div className="h-fit w-fit flex lg:w-[600px] max-w-[600px] rounded-lg rounded-t-none rounded-br-none flex-col border-2 border-r-0 border-t-0  border-blue-700">
                 <div className="bg-blue-700 rounded-tl-none w-full h-10 rounded-t-lg items-center flex pl-2">
                   <h2 className="text-white font-Switzer font-semibold text-2xl lg:text-3xl tracking-wider">
                     Choose Files
@@ -289,7 +289,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="invisible lg:visible -translate-y-[100px] flex flex-col scale-75 border-l-2 border-b-2 border-blue-700 rounded-lg rounded-br-none ">
+            <div className="invisible absolute lg:relative lg:visible -translate-y-[100px] flex flex-col scale-75 border-l-2 border-b-2 border-blue-700 rounded-lg rounded-br-none ">
               <div className="bg-blue-700 rounded-t-lg h-12 justify-center place-items-center flex">
                 <h1 className=" font-Switzer text-4xl font-semibold tracking-wide ">
                   Demo

@@ -2,7 +2,7 @@ import React from "react";
 
 const PrivacyInfo = () => {
   return (
-    <div className="h-screen w-screen bg-slate-950 ">
+    <div className="min-h-screen w-screen bg-slate-950 ">
       <a
         href="/"
         className="absolute left-0 top-0 p-2 cursor-pointer hover:scale-105"
