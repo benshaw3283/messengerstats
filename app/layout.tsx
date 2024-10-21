@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/toaster";
 import QueryProvider from "@/components/QueryProvider";
 import Footer from "@/components/Footer";
+import logo from "@/public/logo.svg";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -24,9 +25,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <link rel="icon" href="/logo.svg" type="utf-8" />
       <body
         className={cn(
-          "min-h-screen bg-background font-sans antialiased",
+          "min-h-screen  bg-background font-sans antialiased",
           fontSans.variable
         )}
       >
