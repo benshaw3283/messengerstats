@@ -7,7 +7,7 @@ export async function GET(request) {
     browser = await puppeteer.launch({
       headless: false,
       args: ["--disable-notifications"],
-    }); //TODO set to true for prod
+    });
     const page = await browser.newPage();
 
     // Listen for browser dialog events and dismiss them
@@ -358,6 +358,7 @@ export async function GET(request) {
     await createFiles();
     return NextResponse.json({ message: "Automation run successfully" });
   } catch (error) {
+    console.error("Error details:", error);
     return NextResponse.json({
       message: "Error running automation",
       error: error.message,

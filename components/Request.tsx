@@ -9,13 +9,30 @@ import {
 } from "@/components/ui/dialog";
 
 export const handleRequestDownload = async () => {
-  try {
-    const response = await fetch("/api/requestDownload", { method: "GET" });
-    const result = await response.json();
-    console.log(result.message);
-  } catch (error) {
-    console.error("Error running automation:", error);
-  }
+  const noVNCUrl = `http://34.129.78.234:6080/vnc.html?autoconnect=true`;
+
+  // Redirect to the VNC URL first
+  window.location.href = noVNCUrl;
+
+  // Delay before starting Puppeteer
+  setTimeout(async () => {
+    try {
+      const response = await fetch(`http://34.129.78.234:3000/start`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        console.log("Puppeteer automation started");
+      } else {
+        console.error("Failed to start Puppeteer automation");
+      }
+    } catch (error) {
+      console.error("Error starting Puppeteer automation:", error);
+    }
+  }, 2000); // Wait 5 seconds before making the fetch request
 };
 
 const Request = () => {
