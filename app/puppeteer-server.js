@@ -58,7 +58,7 @@ const launchPuppeteer = async () => {
       window.prompt = () => "";
     });
 
-    await runAutomation(page);
+    await runAutomationWithRetries(page);
   } catch (error) {
     console.error("Error during Puppeteer launch:", error);
   } finally {
@@ -88,7 +88,28 @@ const runAutomation = async (page) => {
 
     console.log("Automation run successfully");
   } catch (error) {
-    console.error("Error during automation:", error);
+    console.log("Error during automation:", error);
+  }
+};
+
+const maxRetries = 3; // Number of retries if script fails
+
+const runAutomationWithRetries = async (page) => {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`Attempt ${attempt} of ${maxRetries}`);
+      await runAutomation(page);
+      console.log("Automation run successfully");
+      break; // Exit loop if successful
+    } catch (error) {
+      console.error(`Error during automation (attempt ${attempt}):`, error);
+      if (attempt === maxRetries) {
+        console.error("Max retries reached, aborting.");
+        break;
+      }
+      // Wait for a few seconds before retrying
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+    }
   }
 };
 
@@ -117,6 +138,30 @@ async function handlePostLoginPopups(page) {
   }
 }
 
+const retryClick = async (page, selector, retries = 3, delay = 2000) => {
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      // Wait for the selector and click the element
+      await page.waitForSelector(selector, { visible: true });
+      await page.click(selector);
+      console.log(`Clicked element: ${selector}`);
+      return; // Exit if successful
+    } catch (error) {
+      console.log(
+        `Failed to click ${selector} (attempt ${attempt + 1}):`,
+        error
+      );
+
+      // Wait before retrying
+      if (attempt < retries - 1) {
+        await page.waitForTimeout(delay);
+      } else {
+        console.log(`Max retries reached for ${selector}. Moving on.`);
+      }
+    }
+  }
+};
+
 async function clickContinue(page) {
   await page.goto(
     "https://www.facebook.com/settings/?tab=download_your_information",
@@ -130,7 +175,7 @@ async function clickContinue(page) {
   const ariaLabel = "Continue";
 
   await page.waitForSelector(`a[aria-label="${ariaLabel}"]`);
-  await page.click(`a[aria-label="${ariaLabel}"]`);
+  await retryClick(page, `a[aria-label="${ariaLabel}"]`);
   console.log("continue button clicked ");
 }
 
@@ -148,7 +193,7 @@ async function clickDownloadTransferInfo(page) {
   }
 
   console.log("download or transfer button found");
-  await page.click(divSelector);
+  await retryClick(page, divSelector);
 
   console.log("Download button clicked");
 }
@@ -170,8 +215,7 @@ async function clickSpecificTypes(page) {
     console.log("couldnt find listitembutton:", err);
   }
   console.log("types selector found");
-  await page.click(listItemButtonSelector);
-
+  await retryClick(page, listItemButtonSelector);
   console.log("types selector clicked");
 }
 
@@ -252,24 +296,27 @@ async function clickMessagesAndNext(page) {
 }
 
 async function clickDownloadDeviceAndNext(page) {
-  //await page.waitForNavigation();
-  // Wait for the input element to be visible
-
   const divSelector =
     "div > div:nth-child(1) > div > div > div > div > div.x78zum5.xdt5ytf.x1iyjqo2 > div > div > div > div > div > div.x1o1ewxj.x3x9cwd.x1e5q0jg.x13rtm0m.x78zum5.xdt5ytf.x1iyjqo2.x1al4vs7 > div > div.xb57i2i.x1q594ok.x5lxg6s.x78zum5.xdt5ytf.x6ikm8r.x1ja2u2z.x1pq812k.x1rohswg.xfk6m8.x1yqm8si.xjx87ck.xx8ngbg.xwo3gff.x1n2onr6.x1oyok0e.x1odjw0f.x1iyjqo2.xy5w88m > div.x78zum5.xdt5ytf.x1iyjqo2.x1n2onr6.xaci4zi > div.x78zum5.xdt5ytf.x1iyjqo2.xx6bls6.x889kno > div > div > div:nth-child(3) > div > div > div > div > div:nth-child(1) > div";
-  console.log("looking for download next button");
+  console.log("Looking for download next button");
 
-  //console.log(buttonProperties);
+  // Wait for the element to be visible and enabled
   try {
-    await page.waitForSelector(divSelector);
-    console.log("found download next button");
+    await page.waitForSelector(divSelector, { visible: true });
+    console.log("Found download next button");
   } catch (err) {
-    console.log("couldnt find download next button:", err);
+    console.log("Couldn't find download next button:", err);
+    return; // Exit if the button is not found
   }
 
-  await page.click(divSelector);
+  // Try to click the element with retries
+  const clicked = await retryClick(page, divSelector);
 
-  console.log("button clicked");
+  if (clicked) {
+    console.log("Button clicked successfully");
+  } else {
+    console.log("Failed to click the button after retries");
+  }
 }
 
 async function dateRangeAllTime(page) {
@@ -285,7 +332,7 @@ async function dateRangeAllTime(page) {
     console.log("Couldnt find date range button:", err);
   }
 
-  await page.click(selector);
+  await retryClick(page, selector);
   console.log("button clicked");
 
   console.log("looking for All time input");
@@ -330,7 +377,7 @@ async function dateRangeAllTime(page) {
     console.log("couldnt find save button:", err);
   }
   console.log("save button found");
-  await page.click(divSelector);
+  await retryClick(page, divSelector);
 
   console.log("save button clicked");
 }
@@ -415,7 +462,7 @@ async function clickFormatJSON(page) {
     "div > div:nth-child(1) > div > div > div > div > div.x78zum5.xdt5ytf.x1iyjqo2 > div > div > div > div > div > div.x1o1ewxj.x3x9cwd.x1e5q0jg.x13rtm0m.x78zum5.xdt5ytf.x1iyjqo2.x1al4vs7 > div > div.xlp1x4z.x1ey2m1c.xds687c.x10l6tqk.x17qophe.xv7j57z > div.x6ikm8r.x10wlt62 > div > div > div > div > div > div > div";
   await page.waitForSelector(saveDiv);
   console.log("button found");
-  await page.click(saveDiv);
+  await retryClick(page, saveDiv);
 
   console.log("button clicked");
 }
