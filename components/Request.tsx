@@ -32,7 +32,7 @@ export const handleRequestDownload = async () => {
     } catch (error) {
       console.error("Error starting Puppeteer automation:", error);
     }
-  }, 2000); // Wait 5 seconds before making the fetch request
+  }, 2000);
 };
 
 const Request = () => {

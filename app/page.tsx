@@ -8,6 +8,8 @@ import PhoneDemo from "@/components/PhoneDemo";
 const Demo = memo(React.lazy(() => import("@/components/Demo")));
 import { useQuery } from "@tanstack/react-query";
 import { create } from "zustand";
+import { useSearchParams } from "next/navigation";
+import { useToast } from "@/components/ui/use-toast";
 
 interface StoreState {
   selectedFiles: SelectedFile[];
@@ -86,6 +88,27 @@ interface SelectedFile {
 }
 
 export default function Home() {
+  const { toast } = useToast();
+  const searchParams = useSearchParams();
+  const status = searchParams.get("status");
+  React.useEffect(() => {
+    if (status === "success") {
+      toast({
+        title: "Facebook file download request successful!",
+        description:
+          "You will receive a notification when your files are ready to be downloaded.",
+        variant: "default",
+        className: "bg-green-600 text-white",
+      });
+    } else if (status === "error") {
+      toast({
+        title: "Error requesting file download!",
+        description: "Try the process again or request manually.",
+        variant: "destructive",
+        className: "bg-red-600 text-white",
+      });
+    }
+  }, [status, toast]);
   const {
     selectedFiles,
     fileMessages,

@@ -48,6 +48,10 @@ const launchPuppeteer = async () => {
       dumpio: true, // Log browser output to console
     });
     const page = await browser.newPage();
+    await page.setViewport({ width: 1280, height: 1024 }); // Match VNC resolution
+    await page.evaluate(() => {
+      document.documentElement.requestFullscreen().catch(console.error);
+    });
     page.setDefaultNavigationTimeout(240000); // Set timeout to 4 minutes
 
     // Block pop-ups and notifications
@@ -490,10 +494,10 @@ async function createFiles(page) {
 app.get("/start", async (req, res) => {
   try {
     await launchPuppeteer();
-    res.send("Puppeteer started successfully!");
+    console.log("Puppeteer started successfully!");
   } catch (error) {
     console.error("Error during Puppeteer launch:", error);
-    res.status(500).send("Failed to start Puppeteer");
+    res.status(500).send("Automation error", error);
   }
 });
 
