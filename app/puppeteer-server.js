@@ -48,10 +48,13 @@ const launchPuppeteer = async () => {
       dumpio: true, // Log browser output to console
     });
     const page = await browser.newPage();
-    await page.setViewport({ width: 1280, height: 1024 }); // Match VNC resolution
-    await page.evaluate(() => {
+    // await page.setViewport({ width: 1280, height: 1024 }); // Match VNC resolution
+    {
+      /*}  await page.evaluate(() => {
       document.documentElement.requestFullscreen().catch(console.error);
     });
+    */
+    }
     page.setDefaultNavigationTimeout(240000); // Set timeout to 4 minutes
 
     // Block pop-ups and notifications
@@ -142,7 +145,7 @@ async function handlePostLoginPopups(page) {
   }
 }
 
-const retryClick = async (page, selector, retries = 3, delay = 2000) => {
+const retryClick = async (page, selector, retries = 3) => {
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
       // Wait for the selector and click the element
@@ -158,7 +161,7 @@ const retryClick = async (page, selector, retries = 3, delay = 2000) => {
 
       // Wait before retrying
       if (attempt < retries - 1) {
-        await page.waitForTimeout(delay);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       } else {
         console.log(`Max retries reached for ${selector}. Moving on.`);
       }
@@ -301,7 +304,7 @@ async function clickMessagesAndNext(page) {
 
 async function clickDownloadDeviceAndNext(page) {
   const divSelector =
-    "div > div:nth-child(1) > div > div > div > div > div.x78zum5.xdt5ytf.x1iyjqo2 > div > div > div > div > div > div.x1o1ewxj.x3x9cwd.x1e5q0jg.x13rtm0m.x78zum5.xdt5ytf.x1iyjqo2.x1al4vs7 > div > div.xb57i2i.x1q594ok.x5lxg6s.x78zum5.xdt5ytf.x6ikm8r.x1ja2u2z.x1pq812k.x1rohswg.xfk6m8.x1yqm8si.xjx87ck.xx8ngbg.xwo3gff.x1n2onr6.x1oyok0e.x1odjw0f.x1iyjqo2.xy5w88m > div.x78zum5.xdt5ytf.x1iyjqo2.x1n2onr6.xaci4zi > div.x78zum5.xdt5ytf.x1iyjqo2.xx6bls6.x889kno > div > div > div:nth-child(3) > div > div > div > div > div:nth-child(1) > div";
+    "div > div:nth-child(1) > div > div > div > div > div.x78zum5.xdt5ytf.x1iyjqo2 > div > div > div > div > div > div.x1o1ewxj.x3x9cwd.x1e5q0jg.x13rtm0m.x78zum5.xdt5ytf.x1iyjqo2.x1al4vs7 > div > div.xb57i2i.x1q594ok.x5lxg6s.x78zum5.xdt5ytf.x6ikm8r.x1ja2u2z.x1pq812k.x1rohswg.xfk6m8.x1yqm8si.xjx87ck.xx8ngbg.xwo3gff.x1n2onr6.x1oyok0e.x1odjw0f.x1iyjqo2.xy5w88m > div.x78zum5.xdt5ytf.x1iyjqo2.x1n2onr6.xaci4zi > div.x78zum5.xdt5ytf.x1iyjqo2.xx6bls6.x889kno > div > div > div:nth-child(3) > div > div > div > div > div:nth-child(1) > div > div.x9f619.x1n2onr6.x1ja2u2z.x1qjc9v5.x78zum5.xdt5ytf.xl56j7k.xeuugli.xdl72j9.x1iyjqo2.x2lah0s.x1mq37bv.x1pi30zi.x1swvt13.x1gw22gp.x188425o.x19cbwz6.x79zeqe.xgugjxj.x2oemzd > div > div.x9f619.x1ja2u2z.x78zum5.x1n2onr6.x1iyjqo2.xs83m0k.xeuugli.x1qughib.x6s0dn4.x1a02dak.x1q0g3np.xdl72j9 > div > div > div";
   console.log("Looking for download next button");
 
   // Wait for the element to be visible and enabled
@@ -313,6 +316,8 @@ async function clickDownloadDeviceAndNext(page) {
     return; // Exit if the button is not found
   }
 
+  await page.hover(divSelector);
+  await new Promise((resolve) => setTimeout(resolve, 500));
   // Try to click the element with retries
   const clicked = await retryClick(page, divSelector);
 
