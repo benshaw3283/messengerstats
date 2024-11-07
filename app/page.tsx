@@ -16,12 +16,12 @@ interface StoreState {
   fileMessages: Message[];
   info: Info;
   show: boolean;
-  demo: number;
+  demo: boolean;
   setSelectedFiles: (files: SelectedFile[]) => void;
   setFileMessages: (messages: Message[]) => void;
   setInfo: (info: Info) => void;
   setShow: (show: boolean) => void;
-  setDemo: (demo: number) => void;
+  setDemo: (demo: boolean) => void;
 }
 
 const useStore = create<StoreState>((set) => ({
@@ -29,7 +29,7 @@ const useStore = create<StoreState>((set) => ({
   fileMessages: [],
   info: {},
   show: false,
-  demo: 0,
+  demo: false,
   setSelectedFiles: (files) => set(() => ({ selectedFiles: files })),
   setFileMessages: (messages) => set(() => ({ fileMessages: messages })),
   setInfo: (info) => set(() => ({ info })),
@@ -202,6 +202,14 @@ export default function Home() {
     [selectedFiles, fileMessages, info]
   );
 
+  const demoProps = React.useMemo(
+    () => ({
+      demo,
+      setDemo,
+    }),
+    [demo, setDemo]
+  );
+
   const MemoizedLists = React.memo(Lists);
 
   React.useEffect(() => {
@@ -312,7 +320,11 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="invisible absolute lg:relative lg:visible -translate-y-[100px] flex flex-col scale-75 border-l-2 border-b-2 border-blue-700 rounded-lg rounded-br-none ">
+            <div
+              className={`invisible absolute lg:relative lg:visible ${
+                !demo ? "-translate-y-[100px] " : "-translate-y-[190px] "
+              } flex flex-col scale-75 border-l-2 border-b-2 border-blue-700 rounded-lg rounded-br-none`}
+            >
               <div className="bg-blue-700 rounded-t-lg h-12 justify-center place-items-center flex">
                 <h1 className=" font-Switzer text-4xl font-semibold tracking-wide ">
                   Demo
@@ -320,7 +332,7 @@ export default function Home() {
               </div>
               <div className="lg:p-10">
                 <Suspense fallback={<div>Loading Demo...</div>}>
-                  <Demo />
+                  <Demo {...demoProps} />
                 </Suspense>
               </div>
             </div>

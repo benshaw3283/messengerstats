@@ -35,14 +35,26 @@ const PrivacyInfo = () => {
           </p>
           <p className="text-slate-300 pt-2">
             File uploads, chunking and reading are handled completely
-            client-side. There is no database or external server connected to
-            this application, so when you reload the page any statistics
-            gathered from uploaded files dissapear.{" "}
+            client-side. There is no database connected to this application, so
+            when you reload the page any statistics gathered from uploaded files
+            dissapear.{" "}
           </p>
           <p className="text-slate-300 pt-2">
-            The automated requesting of files opens a browser window where you
-            are prompted to sign in to Facebook to begin the process. This is an
-            official Facebook sign in which can be validated through the URL.
+            When you click the <strong>Request Files</strong> button it
+            redirects you to a secure server that opens a browser window where
+            you are prompted to sign in to Facebook to begin the automated
+            process. This is an official Facebook sign in which can be validated
+            through the URL.
+          </p>
+          <p className="text-slate-300 pt-2">
+            You can see the{" "}
+            <a
+              href="https://github.com/benshaw3283/messengerstats"
+              className="font-semibold text-slate-200"
+            >
+              puppeteer-server.js
+            </a>{" "}
+            script inside the app directory.{" "}
           </p>
         </div>
         <div className="flex flex-col">
@@ -58,14 +70,15 @@ const PrivacyInfo = () => {
           <p className="text-slate-300 pt-2">
             The automated requesting of files to download from Facebook is done
             using a Puppeteer script that identifies and clicks the buttons
-            through their Xpath. It ensures that the output is JSON and that the
-            date range is all-time before closing the browser automatically.
+            through their JS selector. It ensures that the output is JSON and
+            that the date range is all-time before closing the browser
+            automatically.
           </p>
-          <p className="text-slate-300 pt-10">
+          <p className="text-slate-300 pt-10 text-xl">
             Made by{" "}
             <a
               href="https://bshaw.me"
-              className="font-semibold hover:text-white"
+              className="font-semibold hover:text-white "
             >
               Ben Shaw
             </a>{" "}
