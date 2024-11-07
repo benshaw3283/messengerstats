@@ -697,7 +697,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
                     <CarouselItem key={index}>
                       <div className="pb-1">
                         <p className="font-semibold">
-                          {(index === 0 && "Most reacted image") ||
+                          {(index === 0 && "Most reacted video") ||
                             (index === 1 && "2nd most reacted video") ||
                             (index === 2 && "3rd most reacted video") ||
                             (index === 3 && "4th most reacted video") ||
@@ -761,7 +761,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
                     <CarouselItem key={index}>
                       <div className="pb-1">
                         <p className="font-semibold">
-                          {(index === 0 && "Most reacted image") ||
+                          {(index === 0 && "Most reacted audio") ||
                             (index === 1 && "2nd most reacted audio") ||
                             (index === 2 && "3rd most reacted audio") ||
                             (index === 3 && "4th most reacted audio") ||
