@@ -6,20 +6,32 @@ const express = require("express");
 
 const app = express();
 process.env.DEBUG = "puppeteer:*";
+process.env.DISPLAY = ":1";
+
 // Enable CORS for all routes
 app.use(cors());
 
+const activeJobs = new Set(); // Track active jobs
+/*}
 const startXvfb = () => {
   exec("Xvfb :1 -screen 0 1280x1024x24 &", (error, stdout, stderr) => {
     if (error) {
       console.error(`Error starting Xvfb: ${error.message}`);
       return;
     }
+    console.log("Xvfb stdout:", stdout);
+    console.log("Xvfb stderr:", stderr);
     console.log("Xvfb started");
   });
 };
+*/
 
-const launchPuppeteer = async () => {
+const launchPuppeteer = async (jobID) => {
+  if (activeJobs.has(jobID)) {
+    console.log(`Job ${jobID} is already active. Skipping.`);
+    return; // Skip if this job ID is already active
+  }
+  activeJobs.add(jobID); // Mark job as active
   let browser;
 
   try {
@@ -70,6 +82,7 @@ const launchPuppeteer = async () => {
     console.error("Error during Puppeteer launch:", error);
   } finally {
     if (browser) await browser.close();
+    activeJobs.delete(jobID);
   }
 };
 
@@ -107,6 +120,23 @@ const runAutomationWithRetries = async (page) => {
       console.log(`Attempt ${attempt} of ${maxRetries}`);
       await runAutomation(page);
       console.log("Automation run successfully");
+      await page.evaluate(() => {
+        const message = document.createElement("div");
+        message.textContent =
+          "Automation complete! You can now close this window.";
+        message.style.position = "fixed";
+        message.style.top = "20px";
+        message.style.left = "50%";
+        message.style.transform = "translateX(-50%)";
+        message.style.padding = "10px 20px";
+        message.style.backgroundColor = "green";
+        message.style.color = "white";
+        message.style.fontSize = "18px";
+        message.style.zIndex = "1000";
+        document.body.appendChild(message);
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 8000));
       break; // Exit loop if successful
     } catch (error) {
       console.error(`Error during automation (attempt ${attempt}):`, error);
@@ -496,18 +526,24 @@ async function createFiles(page) {
   console.log("clicked create files");
 }
 
+app.get("/automation-status", (req, res) => {
+  const hasActiveJobs = activeJobs.size > 0;
+  res.json({ automationActive: hasActiveJobs });
+});
+
 app.get("/start", async (req, res) => {
   try {
-    await launchPuppeteer();
+    const jobID = Date.now().toString();
+    await launchPuppeteer(jobID);
     console.log("Puppeteer started successfully!");
+    res.send(`Automation job ${jobID} started`);
   } catch (error) {
     console.error("Error during Puppeteer launch:", error);
-    res.status(500).send("Automation error", error);
+    res.status(500).send("Automation error");
   }
 });
 
 app.listen(3000, () => {
   console.log("Server running on port 3000");
-  startXvfb();
-  setTimeout(launchPuppeteer, 1500);
+  //startXvfb();
 });

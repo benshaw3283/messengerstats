@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/toaster";
 import QueryProvider from "@/components/QueryProvider";
 import Footer from "@/components/Footer";
-import logo from "@/public/logo.svg";
+import { Suspense } from "react";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -32,9 +32,11 @@ export default function RootLayout({
           fontSans.variable
         )}
       >
-        <QueryProvider>
-          <main>{children}</main>
-        </QueryProvider>
+        <Suspense fallback={<div>Loading...</div>}>
+          <QueryProvider>
+            <main>{children}</main>
+          </QueryProvider>
+        </Suspense>
         <Toaster />
         <Footer />
       </body>
