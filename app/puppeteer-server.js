@@ -6,20 +6,32 @@ const express = require("express");
 
 const app = express();
 process.env.DEBUG = "puppeteer:*";
+process.env.DISPLAY = ":1";
+
 // Enable CORS for all routes
 app.use(cors());
 
+const activeJobs = new Set(); // Track active jobs
+/*}
 const startXvfb = () => {
   exec("Xvfb :1 -screen 0 1280x1024x24 &", (error, stdout, stderr) => {
     if (error) {
       console.error(`Error starting Xvfb: ${error.message}`);
       return;
     }
+    console.log("Xvfb stdout:", stdout);
+    console.log("Xvfb stderr:", stderr);
     console.log("Xvfb started");
   });
 };
+*/
 
-const launchPuppeteer = async () => {
+const launchPuppeteer = async (jobID) => {
+  if (activeJobs.has(jobID)) {
+    console.log(`Job ${jobID} is already active. Skipping.`);
+    return; // Skip if this job ID is already active
+  }
+  activeJobs.add(jobID); // Mark job as active
   let browser;
 
   try {
@@ -48,6 +60,13 @@ const launchPuppeteer = async () => {
       dumpio: true, // Log browser output to console
     });
     const page = await browser.newPage();
+    // await page.setViewport({ width: 1280, height: 1024 }); // Match VNC resolution
+    {
+      /*}  await page.evaluate(() => {
+      document.documentElement.requestFullscreen().catch(console.error);
+    });
+    */
+    }
     page.setDefaultNavigationTimeout(240000); // Set timeout to 4 minutes
 
     // Block pop-ups and notifications
@@ -58,11 +77,12 @@ const launchPuppeteer = async () => {
       window.prompt = () => "";
     });
 
-    await runAutomation(page);
+    await runAutomationWithRetries(page);
   } catch (error) {
     console.error("Error during Puppeteer launch:", error);
   } finally {
     if (browser) await browser.close();
+    activeJobs.delete(jobID);
   }
 };
 
@@ -88,7 +108,45 @@ const runAutomation = async (page) => {
 
     console.log("Automation run successfully");
   } catch (error) {
-    console.error("Error during automation:", error);
+    console.log("Error during automation:", error);
+  }
+};
+
+const maxRetries = 3; // Number of retries if script fails
+
+const runAutomationWithRetries = async (page) => {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`Attempt ${attempt} of ${maxRetries}`);
+      await runAutomation(page);
+      console.log("Automation run successfully");
+      await page.evaluate(() => {
+        const message = document.createElement("div");
+        message.textContent =
+          "Automation complete! You can now close this window.";
+        message.style.position = "fixed";
+        message.style.top = "20px";
+        message.style.left = "50%";
+        message.style.transform = "translateX(-50%)";
+        message.style.padding = "10px 20px";
+        message.style.backgroundColor = "green";
+        message.style.color = "white";
+        message.style.fontSize = "18px";
+        message.style.zIndex = "1000";
+        document.body.appendChild(message);
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 8000));
+      break; // Exit loop if successful
+    } catch (error) {
+      console.error(`Error during automation (attempt ${attempt}):`, error);
+      if (attempt === maxRetries) {
+        console.error("Max retries reached, aborting.");
+        break;
+      }
+      // Wait for a few seconds before retrying
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+    }
   }
 };
 
@@ -117,6 +175,30 @@ async function handlePostLoginPopups(page) {
   }
 }
 
+const retryClick = async (page, selector, retries = 3) => {
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      // Wait for the selector and click the element
+      await page.waitForSelector(selector, { visible: true });
+      await page.click(selector);
+      console.log(`Clicked element: ${selector}`);
+      return; // Exit if successful
+    } catch (error) {
+      console.log(
+        `Failed to click ${selector} (attempt ${attempt + 1}):`,
+        error
+      );
+
+      // Wait before retrying
+      if (attempt < retries - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } else {
+        console.log(`Max retries reached for ${selector}. Moving on.`);
+      }
+    }
+  }
+};
+
 async function clickContinue(page) {
   await page.goto(
     "https://www.facebook.com/settings/?tab=download_your_information",
@@ -130,7 +212,7 @@ async function clickContinue(page) {
   const ariaLabel = "Continue";
 
   await page.waitForSelector(`a[aria-label="${ariaLabel}"]`);
-  await page.click(`a[aria-label="${ariaLabel}"]`);
+  await retryClick(page, `a[aria-label="${ariaLabel}"]`);
   console.log("continue button clicked ");
 }
 
@@ -148,7 +230,7 @@ async function clickDownloadTransferInfo(page) {
   }
 
   console.log("download or transfer button found");
-  await page.click(divSelector);
+  await retryClick(page, divSelector);
 
   console.log("Download button clicked");
 }
@@ -170,8 +252,7 @@ async function clickSpecificTypes(page) {
     console.log("couldnt find listitembutton:", err);
   }
   console.log("types selector found");
-  await page.click(listItemButtonSelector);
-
+  await retryClick(page, listItemButtonSelector);
   console.log("types selector clicked");
 }
 
@@ -252,24 +333,29 @@ async function clickMessagesAndNext(page) {
 }
 
 async function clickDownloadDeviceAndNext(page) {
-  //await page.waitForNavigation();
-  // Wait for the input element to be visible
-
   const divSelector =
-    "div > div:nth-child(1) > div > div > div > div > div.x78zum5.xdt5ytf.x1iyjqo2 > div > div > div > div > div > div.x1o1ewxj.x3x9cwd.x1e5q0jg.x13rtm0m.x78zum5.xdt5ytf.x1iyjqo2.x1al4vs7 > div > div.xb57i2i.x1q594ok.x5lxg6s.x78zum5.xdt5ytf.x6ikm8r.x1ja2u2z.x1pq812k.x1rohswg.xfk6m8.x1yqm8si.xjx87ck.xx8ngbg.xwo3gff.x1n2onr6.x1oyok0e.x1odjw0f.x1iyjqo2.xy5w88m > div.x78zum5.xdt5ytf.x1iyjqo2.x1n2onr6.xaci4zi > div.x78zum5.xdt5ytf.x1iyjqo2.xx6bls6.x889kno > div > div > div:nth-child(3) > div > div > div > div > div:nth-child(1) > div";
-  console.log("looking for download next button");
+    "div > div:nth-child(1) > div > div > div > div > div.x78zum5.xdt5ytf.x1iyjqo2 > div > div > div > div > div > div.x1o1ewxj.x3x9cwd.x1e5q0jg.x13rtm0m.x78zum5.xdt5ytf.x1iyjqo2.x1al4vs7 > div > div.xb57i2i.x1q594ok.x5lxg6s.x78zum5.xdt5ytf.x6ikm8r.x1ja2u2z.x1pq812k.x1rohswg.xfk6m8.x1yqm8si.xjx87ck.xx8ngbg.xwo3gff.x1n2onr6.x1oyok0e.x1odjw0f.x1iyjqo2.xy5w88m > div.x78zum5.xdt5ytf.x1iyjqo2.x1n2onr6.xaci4zi > div.x78zum5.xdt5ytf.x1iyjqo2.xx6bls6.x889kno > div > div > div:nth-child(3) > div > div > div > div > div:nth-child(1) > div > div.x9f619.x1n2onr6.x1ja2u2z.x1qjc9v5.x78zum5.xdt5ytf.xl56j7k.xeuugli.xdl72j9.x1iyjqo2.x2lah0s.x1mq37bv.x1pi30zi.x1swvt13.x1gw22gp.x188425o.x19cbwz6.x79zeqe.xgugjxj.x2oemzd > div > div.x9f619.x1ja2u2z.x78zum5.x1n2onr6.x1iyjqo2.xs83m0k.xeuugli.x1qughib.x6s0dn4.x1a02dak.x1q0g3np.xdl72j9 > div > div > div";
+  console.log("Looking for download next button");
 
-  //console.log(buttonProperties);
+  // Wait for the element to be visible and enabled
   try {
-    await page.waitForSelector(divSelector);
-    console.log("found download next button");
+    await page.waitForSelector(divSelector, { visible: true });
+    console.log("Found download next button");
   } catch (err) {
-    console.log("couldnt find download next button:", err);
+    console.log("Couldn't find download next button:", err);
+    return; // Exit if the button is not found
   }
 
-  await page.click(divSelector);
+  await page.hover(divSelector);
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  // Try to click the element with retries
+  const clicked = await retryClick(page, divSelector);
 
-  console.log("button clicked");
+  if (clicked) {
+    console.log("Button clicked successfully");
+  } else {
+    console.log("Failed to click the button after retries");
+  }
 }
 
 async function dateRangeAllTime(page) {
@@ -285,7 +371,7 @@ async function dateRangeAllTime(page) {
     console.log("Couldnt find date range button:", err);
   }
 
-  await page.click(selector);
+  await retryClick(page, selector);
   console.log("button clicked");
 
   console.log("looking for All time input");
@@ -330,7 +416,7 @@ async function dateRangeAllTime(page) {
     console.log("couldnt find save button:", err);
   }
   console.log("save button found");
-  await page.click(divSelector);
+  await retryClick(page, divSelector);
 
   console.log("save button clicked");
 }
@@ -415,7 +501,7 @@ async function clickFormatJSON(page) {
     "div > div:nth-child(1) > div > div > div > div > div.x78zum5.xdt5ytf.x1iyjqo2 > div > div > div > div > div > div.x1o1ewxj.x3x9cwd.x1e5q0jg.x13rtm0m.x78zum5.xdt5ytf.x1iyjqo2.x1al4vs7 > div > div.xlp1x4z.x1ey2m1c.xds687c.x10l6tqk.x17qophe.xv7j57z > div.x6ikm8r.x10wlt62 > div > div > div > div > div > div > div";
   await page.waitForSelector(saveDiv);
   console.log("button found");
-  await page.click(saveDiv);
+  await retryClick(page, saveDiv);
 
   console.log("button clicked");
 }
@@ -440,18 +526,24 @@ async function createFiles(page) {
   console.log("clicked create files");
 }
 
+app.get("/automation-status", (req, res) => {
+  const hasActiveJobs = activeJobs.size > 0;
+  res.json({ automationActive: hasActiveJobs });
+});
+
 app.get("/start", async (req, res) => {
   try {
-    await launchPuppeteer();
-    res.send("Puppeteer started successfully!");
+    const jobID = Date.now().toString();
+    await launchPuppeteer(jobID);
+    console.log("Puppeteer started successfully!");
+    res.send(`Automation job ${jobID} started`);
   } catch (error) {
     console.error("Error during Puppeteer launch:", error);
-    res.status(500).send("Failed to start Puppeteer");
+    res.status(500).send("Automation error");
   }
 });
 
 app.listen(3000, () => {
   console.log("Server running on port 3000");
-  startXvfb();
-  setTimeout(launchPuppeteer, 1500);
+  //startXvfb();
 });

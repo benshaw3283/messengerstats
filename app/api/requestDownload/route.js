@@ -42,7 +42,7 @@ export async function GET(request) {
 
     async function clickContinue() {
       await page.goto(
-        "https://www.facebook.com/settings/?tab=download_your_information"
+        "https://accountscenter.facebook.com/info_and_permissions/dyi/"
       );
       console.log("going to download info");
 

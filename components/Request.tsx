@@ -9,15 +9,15 @@ import {
 } from "@/components/ui/dialog";
 
 export const handleRequestDownload = async () => {
-  const noVNCUrl = `http://34.129.78.234:6080/vnc.html?autoconnect=true`;
+  const noVNCUrl = `https://api.messengerstats.com:6080/vnc.html?autoconnect=true`;
 
   // Redirect to the VNC URL first
-  window.location.href = noVNCUrl;
+  window.open(noVNCUrl, "_blank");
 
   // Delay before starting Puppeteer
   setTimeout(async () => {
     try {
-      const response = await fetch(`http://34.129.78.234:3000/start`, {
+      const response = await fetch(`https://api.messengerstats.com/start`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -32,7 +32,7 @@ export const handleRequestDownload = async () => {
     } catch (error) {
       console.error("Error starting Puppeteer automation:", error);
     }
-  }, 2000); // Wait 5 seconds before making the fetch request
+  }, 1000);
 };
 
 const Request = () => {
