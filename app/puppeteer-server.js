@@ -1,6 +1,5 @@
-const http = require("http");
 const puppeteer = require("puppeteer");
-const { exec } = require("child_process");
+
 const cors = require("cors");
 const express = require("express");
 
@@ -29,9 +28,9 @@ const startXvfb = () => {
 const launchPuppeteer = async (jobID) => {
   if (activeJobs.has(jobID)) {
     console.log(`Job ${jobID} is already active. Skipping.`);
-    return; // Skip if this job ID is already active
+    return;
   }
-  activeJobs.add(jobID); // Mark job as active
+  activeJobs.add(jobID);
   let browser;
 
   try {
@@ -112,7 +111,7 @@ const runAutomation = async (page) => {
   }
 };
 
-const maxRetries = 3; // Number of retries if script fails
+const maxRetries = 3;
 
 const runAutomationWithRetries = async (page) => {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -144,7 +143,7 @@ const runAutomationWithRetries = async (page) => {
         console.error("Max retries reached, aborting.");
         break;
       }
-      // Wait for a few seconds before retrying
+
       await new Promise((resolve) => setTimeout(resolve, 3000));
     }
   }
@@ -170,7 +169,6 @@ async function handlePostLoginPopups(page) {
       });
     });
   } catch (e) {
-    // No popups found, continue with the script
     console.log("No popups to handle");
   }
 }
@@ -178,18 +176,16 @@ async function handlePostLoginPopups(page) {
 const retryClick = async (page, selector, retries = 3) => {
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
-      // Wait for the selector and click the element
       await page.waitForSelector(selector, { visible: true });
       await page.click(selector);
       console.log(`Clicked element: ${selector}`);
-      return; // Exit if successful
+      return;
     } catch (error) {
       console.log(
         `Failed to click ${selector} (attempt ${attempt + 1}):`,
         error
       );
 
-      // Wait before retrying
       if (attempt < retries - 1) {
         await new Promise((resolve) => setTimeout(resolve, 1000));
       } else {
@@ -219,8 +215,6 @@ async function clickContinue(page) {
 async function clickDownloadTransferInfo(page) {
   await page.waitForNavigation();
 
-  // Perform actions on the new page
-  // Example: Click a div with role="button" and tabindex="0"
   const divSelector =
     'div[role="button"][tabindex="0"][class="x1i10hfl xjbqb8w x1ejq31n xd10rxx x1sy0etr x17r0tee x972fbf xcfux6l x1qhh985 xm0m39n x1ypdohk xe8uvvx xdj266r x11i5rnm xat24cr x1mh8g0r xexx8yu x4uap5 x18d9i69 xkhd6sd x16tdsg8 x1hl2dhg xggy1nq x1o1ewxj x3x9cwd x1e5q0jg x13rtm0m x87ps6o x1lku1pv x1a2a7pz x9f619 x3nfvp2 xdt5ytf xl56j7k x1n2onr6 xh8yej3"]';
   try {
@@ -242,7 +236,7 @@ async function clickSpecificTypes(page) {
     console.log("Couldnt find specifictypes:", err);
   }
   console.log("found list div");
-  // Example: Click the second div with role="listitem" within a div with role="list"
+
   const listItemButtonSelector =
     'div[role="list"] > div[role="listitem"]:nth-of-type(2) div[role="button"]';
 
@@ -266,7 +260,6 @@ async function clickMessagesAndNext(page) {
     console.log("couldnt find messages checkbox:", err);
   }
 
-  // Log multiple checkboxes
   await page.evaluate(() => {
     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
     checkboxes.forEach((checkbox, index) => {
@@ -274,7 +267,6 @@ async function clickMessagesAndNext(page) {
     });
   });
 
-  // Click the checkbox
   await page.evaluate(async (selector) => {
     const checkbox = document.querySelector(selector);
     if (checkbox) {
@@ -287,7 +279,6 @@ async function clickMessagesAndNext(page) {
     }
   }, inputSelector);
 
-  // Wait for aria-checked attribute to be 'true'
   await page.waitForFunction(
     (selector) => {
       const checkbox = document.querySelector(selector);
@@ -298,7 +289,6 @@ async function clickMessagesAndNext(page) {
   );
   console.log("Checkbox checked");
 
-  // Define the selector for the next button
   const divSelector =
     "div > div:nth-child(1) > div > div > div > div > div.x78zum5.xdt5ytf.x1iyjqo2 > div > div > div > div > div > div.x1o1ewxj.x3x9cwd.x1e5q0jg.x13rtm0m.x78zum5.xdt5ytf.x1iyjqo2.x1al4vs7 > div > div.xlp1x4z.x1ey2m1c.xds687c.x10l6tqk.x17qophe.x1jx94hy.xv7j57z > div.x6ikm8r.x10wlt62 > div > div > div > div > div > div > div";
 
@@ -309,7 +299,6 @@ async function clickMessagesAndNext(page) {
     console.log("couldnt find next button:", err);
   }
 
-  // Wait for the next button to be enabled
   await page.waitForFunction(
     (selector) => {
       const button = document.querySelector(selector);
@@ -337,18 +326,17 @@ async function clickDownloadDeviceAndNext(page) {
     "div > div:nth-child(1) > div > div > div > div > div.x78zum5.xdt5ytf.x1iyjqo2 > div > div > div > div > div > div.x1o1ewxj.x3x9cwd.x1e5q0jg.x13rtm0m.x78zum5.xdt5ytf.x1iyjqo2.x1al4vs7 > div > div.xb57i2i.x1q594ok.x5lxg6s.x78zum5.xdt5ytf.x6ikm8r.x1ja2u2z.x1pq812k.x1rohswg.xfk6m8.x1yqm8si.xjx87ck.xx8ngbg.xwo3gff.x1n2onr6.x1oyok0e.x1odjw0f.x1iyjqo2.xy5w88m > div.x78zum5.xdt5ytf.x1iyjqo2.x1n2onr6.xaci4zi > div.x78zum5.xdt5ytf.x1iyjqo2.xx6bls6.x889kno > div > div > div:nth-child(3) > div > div > div > div > div:nth-child(1) > div > div.x9f619.x1n2onr6.x1ja2u2z.x1qjc9v5.x78zum5.xdt5ytf.xl56j7k.xeuugli.xdl72j9.x1iyjqo2.x2lah0s.x1mq37bv.x1pi30zi.x1swvt13.x1gw22gp.x188425o.x19cbwz6.x79zeqe.xgugjxj.x2oemzd > div > div.x9f619.x1ja2u2z.x78zum5.x1n2onr6.x1iyjqo2.xs83m0k.xeuugli.x1qughib.x6s0dn4.x1a02dak.x1q0g3np.xdl72j9 > div > div > div";
   console.log("Looking for download next button");
 
-  // Wait for the element to be visible and enabled
   try {
     await page.waitForSelector(divSelector, { visible: true });
     console.log("Found download next button");
   } catch (err) {
     console.log("Couldn't find download next button:", err);
-    return; // Exit if the button is not found
+    return;
   }
 
   await page.hover(divSelector);
   await new Promise((resolve) => setTimeout(resolve, 500));
-  // Try to click the element with retries
+
   const clicked = await retryClick(page, divSelector);
 
   if (clicked) {
@@ -359,7 +347,6 @@ async function clickDownloadDeviceAndNext(page) {
 }
 
 async function dateRangeAllTime(page) {
-  // Wait for the list to be present
   console.log("trying to find button inside listitem");
 
   const selector =
@@ -383,20 +370,19 @@ async function dateRangeAllTime(page) {
     console.log("couldnt find all time input:", err);
   }
   console.log("all time input found");
-  // Click the checkbox
+
   await page.evaluate(async (selector) => {
     const checkbox = document.querySelector(selector);
     if (checkbox) {
       checkbox.click();
       console.log("Checkbox clicked");
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for any JavaScript handling
+      await new Promise((resolve) => setTimeout(resolve, 500));
       checkbox.setAttribute("aria-checked", "true");
     } else {
       console.log("Checkbox not found");
     }
   }, checkbox);
 
-  // Wait for aria-checked attribute to be 'true'
   await page.waitForFunction(
     (selector) => {
       const checkbox = document.querySelector(selector);
@@ -451,8 +437,7 @@ async function clickFormatJSON(page) {
     return properties;
   }, divSelector);
   console.log(buttonProperties);
-  //await page.click(divSelector);
-  // Click using page.evaluate
+
   await page.evaluate((selector) => {
     const button = document.querySelector(selector);
     if (button) {
@@ -473,20 +458,18 @@ async function clickFormatJSON(page) {
     console.log("couldnt find json checkbox", err);
   }
 
-  // Click the checkbox
   await page.evaluate(async (selector) => {
     const checkbox = document.querySelector(selector);
     if (checkbox) {
       checkbox.click();
       console.log("Checkbox clicked");
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for any JavaScript handling
+      await new Promise((resolve) => setTimeout(resolve, 500));
       checkbox.setAttribute("aria-checked", "true");
     } else {
       console.log("Checkbox not found");
     }
   }, checkboxJSON);
 
-  // Wait for aria-checked attribute to be 'true'
   await page.waitForFunction(
     (selector) => {
       const checkbox = document.querySelector(selector);
@@ -512,13 +495,13 @@ async function createFiles(page) {
 
   await page.waitForSelector(divSelector);
   console.log("found create files button");
-  //await page.click(divSelector);
+
   await page.evaluate(async (selector) => {
     const checkbox = document.querySelector(selector);
     if (checkbox) {
       checkbox.click();
       console.log("div clicked");
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for any JavaScript handling
+      await new Promise((resolve) => setTimeout(resolve, 500));
     } else {
       console.log("div not found");
     }
