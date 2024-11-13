@@ -341,6 +341,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
   const validReactedVideos = mostReactedVideos.filter(({ file }) => file);
   const validReactedAudios = mostReactedAudios.filter(({ file }) => file);
 
+  /*
   // Cache object URLs for files
   const cachedPhotos = React.useMemo(
     () =>
@@ -365,18 +366,29 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
       ),
     [mostReactedAudios]
   );
+  */
 
   return (
     <div className="pt-10 pb-10">
       <div className="flex flex-col items-center ">
-        <section className="bg-neutral-100 p-3 rounded-lg mt-2 border-2 border-blue-700 ">
+        <section
+          className={`bg-neutral-100 p-3 ${
+            info?.title?.length! > 10
+              ? "rounded-lg"
+              : "rounded-lg rounded-b-none"
+          } mt-2 border-2 border-blue-700 `}
+        >
           <div className="bg-blue-700 rounded-sm p-4  z-10">
             <h1 className="lg:text-5xl text-4xl font-semibold p-3 rounded-lg">
               {info.title}
             </h1>
           </div>
         </section>
-        <section className="bg-neutral-100 -translate-y-4 mt-[14px] p-2 rounded-lg rounded-t-none border-2 border-t-0 border-blue-700">
+        <section
+          className={`bg-neutral-100 -translate-y-4 mt-[14px] p-2 rounded-lg ${
+            info?.title?.length! > 10 ? "rounded-t-none" : ""
+          } border-2 border-t-0 border-blue-700`}
+        >
           <div className="flex flex-row gap-2 py-3 text-2xl font-semibold pt-5 bg-blue-700 rounded-sm p-2  z-10">
             <p>Total Messages:</p>
             <p>{addComma(fileMessages?.length)}</p>
@@ -783,7 +795,7 @@ const Lists: React.FC<Props> = ({ selectedFiles, fileMessages, info }) => {
                       <div className="flex justify-center items-center">
                         {file ? (
                           <audio
-                            src={cachedAudios[index] || ""}
+                            src={URL.createObjectURL(file)}
                             controls
                           ></audio>
                         ) : (

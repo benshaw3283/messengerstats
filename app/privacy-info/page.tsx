@@ -74,11 +74,11 @@ const PrivacyInfo = () => {
             that the date range is all-time before closing the browser
             automatically.
           </p>
-          <p className="text-slate-300 pt-10 text-xl">
+          <p className="text-slate-300 pt-10 text-lg">
             Made by{" "}
             <a
               href="https://bshaw.me"
-              className="font-semibold hover:text-white "
+              className="font-semibold hover:text-white text-xl"
             >
               Ben Shaw
             </a>{" "}

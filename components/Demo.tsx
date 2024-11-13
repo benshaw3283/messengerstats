@@ -25,8 +25,8 @@ const laughEmoji = new TextDecoder("utf-8").decode(new Uint8Array(byteArray));
 const thumbEmoji = new TextDecoder("utf-8").decode(new Uint8Array(byteArray2));
 
 interface Props {
-  demo: boolean;
-  setDemo: (state: boolean) => void;
+  demo: string;
+  setDemo: (state: string) => void;
 }
 
 const Demo: React.FC<Props> = ({ demo, setDemo }) => {
@@ -38,7 +38,7 @@ const Demo: React.FC<Props> = ({ demo, setDemo }) => {
   const div3Ref = React.useRef<any>(null);
 
   const handleTabChange = (value: string) => {
-    setDemo(value === "most");
+    setDemo(value);
   };
 
   const copyToClipboard = async (text: any) => {
@@ -107,27 +107,27 @@ const Demo: React.FC<Props> = ({ demo, setDemo }) => {
       <div className="flex justify-center">
         <Tabs
           defaultValue="total"
-          value={demo ? "most" : "total"}
+          value={demo}
           onValueChange={handleTabChange}
           className="w-[600px] "
         >
           <TabsList className="w-[600px]">
             <TabsTrigger
-              onClick={() => setDemo(false)}
+              onClick={() => setDemo("total")}
               value="total"
               className="w-[200px] text-lg font-Switzer text-blue-700  tracking-wide"
             >
               Messages Sent
             </TabsTrigger>
             <TabsTrigger
-              onClick={() => setDemo(false)}
+              onClick={() => setDemo("reactions")}
               value="reactions"
               className="w-[200px] text-lg  font-Switzer text-blue-700  tracking-wide"
             >
               Message Reactions
             </TabsTrigger>
             <TabsTrigger
-              onClick={() => setDemo(true)}
+              onClick={() => setDemo("most")}
               value="most"
               className="w-[200px] text-lg  font-Switzer text-blue-700  tracking-wide"
             >
