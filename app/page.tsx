@@ -8,20 +8,18 @@ import PhoneDemo from "@/components/PhoneDemo";
 const Demo = memo(React.lazy(() => import("@/components/Demo")));
 import { useQuery } from "@tanstack/react-query";
 import { create } from "zustand";
-import { useSearchParams } from "next/navigation";
-import { useToast } from "@/components/ui/use-toast";
 
 interface StoreState {
   selectedFiles: SelectedFile[];
   fileMessages: Message[];
   info: Info;
   show: boolean;
-  demo: boolean;
+  demo: string;
   setSelectedFiles: (files: SelectedFile[]) => void;
   setFileMessages: (messages: Message[]) => void;
   setInfo: (info: Info) => void;
   setShow: (show: boolean) => void;
-  setDemo: (demo: boolean) => void;
+  setDemo: (demo: string) => void;
 }
 
 const useStore = create<StoreState>((set) => ({
@@ -29,7 +27,7 @@ const useStore = create<StoreState>((set) => ({
   fileMessages: [],
   info: {},
   show: false,
-  demo: false,
+  demo: "total",
   setSelectedFiles: (files) => set(() => ({ selectedFiles: files })),
   setFileMessages: (messages) => set(() => ({ fileMessages: messages })),
   setInfo: (info) => set(() => ({ info })),
@@ -88,27 +86,6 @@ interface SelectedFile {
 }
 
 export default function Home() {
-  const { toast } = useToast();
-  const searchParams = useSearchParams();
-  const status = searchParams.get("status");
-  React.useEffect(() => {
-    if (status === "success") {
-      toast({
-        title: "Facebook file download request successful!",
-        description:
-          "You will receive a notification when your files are ready to be downloaded.",
-        variant: "default",
-        className: "bg-green-600 text-white",
-      });
-    } else if (status === "error") {
-      toast({
-        title: "Error requesting file download!",
-        description: "Try the process again or request manually.",
-        variant: "destructive",
-        className: "bg-red-600 text-white",
-      });
-    }
-  }, [status, toast]);
   const {
     selectedFiles,
     fileMessages,
@@ -322,7 +299,9 @@ export default function Home() {
 
             <div
               className={`invisible absolute lg:relative lg:visible ${
-                !demo ? "-translate-y-[100px] " : "-translate-y-[190px] "
+                demo !== "most"
+                  ? "-translate-y-[100px] "
+                  : "-translate-y-[190px] "
               } flex flex-col scale-75 border-l-2 border-b-2 border-blue-700 rounded-lg rounded-br-none`}
             >
               <div className="bg-blue-700 rounded-t-lg h-12 justify-center place-items-center flex">
