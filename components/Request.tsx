@@ -62,9 +62,13 @@ const Request = () => {
                   Tutorial
                 </a>
               </p>
-              <p className="text-red-600 text-xs flex justify-center pt-1">
-                ! Does not work on phones !
-              </p>
+              <div className="flex flex-row justify-center pt-4 gap-2 items-center">
+                <p className="text-blue-700 text-xl ">!</p>
+                <p className="text-white text-xs flex justify-center pt-1 ">
+                  Works on phones using the side panel
+                </p>
+                <p className="text-blue-700 text-xl ">!</p>
+              </div>
             </DialogDescription>
           </DialogHeader>
           <button
