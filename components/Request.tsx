@@ -32,7 +32,7 @@ export const handleRequestDownload = async () => {
     } catch (error) {
       console.error("Error starting Puppeteer automation:", error);
     }
-  }, 1000);
+  }, 500);
 };
 
 const Request = () => {
