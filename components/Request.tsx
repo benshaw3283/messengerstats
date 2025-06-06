@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 
 export const handleRequestDownload = async () => {
-  const noVNCUrl = `https://api.messengerstats.com:6080/vnc.html?autoconnect=true`;
+  const noVNCUrl = "https://api.messengerstats.com/vnc.html?path=websockify/&encrypt=true&autoconnect=true";
 
   // Redirect to the VNC URL first
   window.open(noVNCUrl, "_blank");

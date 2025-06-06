@@ -38,8 +38,6 @@ const launchPuppeteer = async (jobID) => {
 
     browser = await puppeteer.launch({
       headless: false,
-      executablePath:
-        "/home/benshaw3283/.cache/puppeteer/chrome/linux-130.0.6723.58/chrome-linux64/chrome",
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
