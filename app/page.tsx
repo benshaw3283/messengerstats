@@ -22,6 +22,8 @@ interface StoreState {
   setDemo: (demo: string) => void;
 }
 
+
+
 const useStore = create<StoreState>((set) => ({
   selectedFiles: [],
   fileMessages: [],
@@ -226,7 +228,7 @@ export default function Home() {
           />
         </svg>
       </div>
-      <h1 className="flex  font-Switzer font-semibold  text-6xl lg:text-8xl md:text-8xl py-4 pl-4 lg:mb-24 md:mb-24 mb-20">
+      <h1 className="flex justify-center font-Switzer font-semibold  text-6xl lg:text-8xl md:text-8xl py-4  lg:mb-24 md:mb-24 mb-20">
         Messenger Stats
       </h1>
 

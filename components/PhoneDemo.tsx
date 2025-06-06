@@ -85,7 +85,7 @@ const PhoneDemo = () => {
   return (
     <div>
       <Dialog>
-        <DialogTrigger className="hover:text-white">Demo</DialogTrigger>
+        <DialogTrigger className="hover:text-white pr-2">Demo</DialogTrigger>
         <DialogContent className="bg-slate-950 w-[98%] px-0  rounded-sm h-[90%] overflow-y-scroll ">
           <DialogTitle></DialogTitle>
           <DialogDescription></DialogDescription>
@@ -526,6 +526,7 @@ const PhoneDemo = () => {
               </TabsContent>
             </Tabs>
           </div>
+          <DialogClose className="text-white right-4 top-4 absolute bg-slate-600 size-4 rounded-full"></DialogClose>
         </DialogContent>
       </Dialog>
     </div>
